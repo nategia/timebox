@@ -174,7 +174,7 @@ function Index() {
 
         <Instructions />
         <Details />
-        <div className="flex flex-col sm:flex-row w-full items-center justify-center space-x-0 space-y-2 sm:space-x-4 sm:space-y-0 p-4 bg-background">
+        <div className="flex flex-col sm:flex-row w-full items-center justify-center space-x-0 space-y-2 sm:space-x-4 sm:space-y-0 p-0 sm:p-4 bg-background">
           <Input
             placeholder="brain dump of what you need to do today"
             onChange={(e) => setNewTodo(e.target.value)}
