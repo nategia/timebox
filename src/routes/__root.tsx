@@ -1,5 +1,9 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createRootRoute({
-  component: () => <Outlet />,
+  component: () => (
+    <div className="flex-grow min-h-screen">
+      <Outlet />
+    </div>
+  ),
 });
