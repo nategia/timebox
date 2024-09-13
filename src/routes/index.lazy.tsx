@@ -168,13 +168,13 @@ function Index() {
     reorderTodos(result.source.index, result.destination.index);
   };
   return (
-    <div className="p-8 min-h-screen bg-background flex-col flex flex-grow">
-      <div className="bg-background p-8 w-full rounded-md text-center space-y-4">
+    <div className="p-0 sm:p-8 min-h-screen bg-background flex-col flex flex-grow ">
+      <div className="bg-background p-4 sm:p-8 w-full rounded-md text-center space-y-4">
         <h1 className="p-4 text-2xl font-bold">Don't waste time, Timebox.</h1>
 
         <Instructions />
         <Details />
-        <div className="flex flex-row w-full items-center justify-center space-x-4 p-4 bg-background">
+        <div className="flex flex-col sm:flex-row w-full items-center justify-center space-x-0 space-y-2 sm:space-x-4 sm:space-y-0 p-4 bg-background">
           <Input
             placeholder="brain dump of what you need to do today"
             onChange={(e) => setNewTodo(e.target.value)}
@@ -197,10 +197,15 @@ function Index() {
             }}
             type="submit"
             disabled={!newTodo}
+            className=" w-full sm:w-auto"
           >
             Add Todo
           </Button>
-          <Button onClick={cleanup} variant="secondary">
+          <Button
+            onClick={cleanup}
+            variant="secondary"
+            className=" w-full sm:w-auto"
+          >
             Scrap all
           </Button>
         </div>
@@ -246,26 +251,29 @@ function Index() {
                                   ? "line-through"
                                   : "none",
                               }}
+                              className="text-sm sm:text-lg"
                             >
                               {capitaliseFirstLetter(content)}
                             </p>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="lg"
-                            onClick={() => complete(id)}
-                          >
-                            <LuCheck />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="lg"
-                            onClick={() => {
-                              removeTodo(id);
-                            }}
-                          >
-                            <LuTrash2 />
-                          </Button>
+                          <div className="flex flex-col sm:flex-row items-center justify-center space-x-0 space-y-2 sm:space-x-2 sm:space-y-0">
+                            <Button
+                              variant="outline"
+                              size="lg"
+                              onClick={() => complete(id)}
+                            >
+                              <LuCheck />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="lg"
+                              onClick={() => {
+                                removeTodo(id);
+                              }}
+                            >
+                              <LuTrash2 />
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </Draggable>
