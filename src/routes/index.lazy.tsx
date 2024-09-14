@@ -3,7 +3,7 @@ import { Input } from "@/components/input";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { ChevronsUpDown, Grip } from "lucide-react";
 import { useState } from "react";
-import { LuCheck, LuTrash2 } from "react-icons/lu";
+import { LuCheck, LuTrash2, LuUndo } from "react-icons/lu";
 import { create } from "zustand";
 import {
   DragDropContext,
@@ -236,15 +236,6 @@ function Index() {
                           </div>
                           <h2 className="text-xl font-bold">{index + 1}</h2>
                           <div className="flex flex-row w-full text-start p-4 h-full">
-                            {/* <Textarea
-                              style={{
-                                textDecoration: completed
-                                  ? "line-through"
-                                  : "none",
-                              }}
-                            >
-                              {capitaliseFirstLetter(content)}
-                            </Textarea> */}
                             <p
                               style={{
                                 textDecoration: completed
@@ -262,7 +253,7 @@ function Index() {
                               size="lg"
                               onClick={() => complete(id)}
                             >
-                              <LuCheck />
+                              {completed ? <LuUndo /> : <LuCheck />}
                             </Button>
                             <Button
                               variant="destructive"
