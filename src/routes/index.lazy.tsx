@@ -2,8 +2,8 @@ import { Button } from "@/components/button";
 import { Input } from "@/components/input";
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { ChevronsUpDown, Grip } from "lucide-react";
-import { useState } from "react";
-import { LuCheck, LuTrash2, LuUndo } from "react-icons/lu";
+import { useEffect, useState } from "react";
+import { LuCheck, LuPenSquare, LuTrash2, LuUndo } from "react-icons/lu";
 import { create } from "zustand";
 import {
   DragDropContext,
@@ -18,6 +18,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/collapsible";
 import { slice } from "ramda";
+import { Progress } from "@/components/progress";
 
 type TodoStore = {
   todos: Array<{ id: number; content: string; completed: boolean }>;
@@ -34,7 +35,6 @@ const useTodoStore = create(
       todos: [],
       addTodo: (content) => {
         const id = get().todos.length;
-
         set((state) => ({
           todos: [...state.todos, { id, content, completed: false }],
         }));
@@ -160,6 +160,9 @@ function Index() {
   const { todos, addTodo, removeTodo, cleanup, reorderTodos, complete } =
     useTodoStore();
   const [newTodo, setNewTodo] = useState("");
+  const [editTodo, setEditTodo] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [progress, setProgress] = useState<number>(0);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) {
@@ -167,14 +170,22 @@ function Index() {
     }
     reorderTodos(result.source.index, result.destination.index);
   };
+
+  const currProgressPercent =
+    (todos?.filter((todo) => todo.completed).length / todos?.length) * 100;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setProgress(currProgressPercent), 250);
+    return () => clearTimeout(timer);
+  }, [currProgressPercent]);
+
   return (
     <div className="p-0 sm:p-8 min-h-screen bg-background flex-col flex flex-grow ">
       <div className="bg-background p-4 sm:p-8 w-full rounded-md text-center space-y-4">
         <h1 className="p-4 text-2xl font-bold">Don't waste time, Timebox.</h1>
-
         <Instructions />
         <Details />
-        <div className="flex flex-col sm:flex-row w-full items-center justify-center space-x-0 space-y-2 sm:space-x-4 sm:space-y-0 p-0 sm:p-4 bg-background">
+        <div className="flex flex-col sm:flex-row w-full items-center justify-center space-x-0 space-y-2 sm:space-x-4 sm:space-y-0 bg-background">
           <Input
             placeholder="brain dump of what you need to do today"
             onChange={(e) => setNewTodo(e.target.value)}
@@ -209,6 +220,10 @@ function Index() {
             Scrap all
           </Button>
         </div>
+        <div className="w-full border-secondary-foreground border space-y-2 p-4">
+          <h2 className="p-4 text-xl font-bold">Your Progress</h2>
+          <Progress value={progress} className="w-full" />
+        </div>
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="droppable">
             {(provided) => (
@@ -236,28 +251,68 @@ function Index() {
                           </div>
                           <h2 className="text-xl font-bold">{index + 1}</h2>
                           <div className="flex flex-row w-full text-start p-4 h-full">
-                            <p
-                              style={{
-                                textDecoration: completed
-                                  ? "line-through"
-                                  : "none",
-                              }}
-                              className="text-sm sm:text-lg"
-                            >
-                              {capitaliseFirstLetter(content)}
-                            </p>
+                            {editTodo === id ? (
+                              <Input
+                                onChange={(e) => setEditContent(e.target.value)}
+                                value={editContent}
+                                className="w-full"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    if (editTodo !== null) {
+                                      if (editContent.trim() !== "") {
+                                        useTodoStore.setState((state) => ({
+                                          todos: state.todos.map((todo) =>
+                                            todo.id === id
+                                              ? {
+                                                  ...todo,
+                                                  content: editContent,
+                                                }
+                                              : todo
+                                          ),
+                                        }));
+                                        setEditTodo(null);
+                                        setEditContent("");
+                                      }
+                                    }
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <p
+                                style={{
+                                  textDecoration: completed
+                                    ? "line-through"
+                                    : "none",
+                                }}
+                                className="text-sm sm:text-lg"
+                              >
+                                {capitaliseFirstLetter(content)}
+                              </p>
+                            )}
                           </div>
                           <div className="flex flex-col sm:flex-row items-center justify-center space-x-0 space-y-2 sm:space-x-2 sm:space-y-0">
                             <Button
+                              size="icon"
+                              onClick={() => {
+                                setEditTodo(id === editTodo ? null : id);
+                                setEditContent(capitaliseFirstLetter(content));
+                              }}
+                              className="bg-blue-500 hover:bg-blue-600/90 "
+                            >
+                              {id === editTodo ? <LuUndo /> : <LuPenSquare />}
+                            </Button>
+                            <Button
                               variant="outline"
-                              size="lg"
+                              size="icon"
                               onClick={() => complete(id)}
                             >
                               {completed ? <LuUndo /> : <LuCheck />}
                             </Button>
                             <Button
                               variant="destructive"
-                              size="lg"
+                              size="icon"
                               onClick={() => {
                                 removeTodo(id);
                               }}
