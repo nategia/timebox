@@ -253,12 +253,27 @@ function Index() {
 
         {todos.length > 0 && (
           <div className="flex flex-col space-y-4 p-4">
-            <div className="flex flex-row items-center justify-between space-x-8 p-4">
-              <h3 className="text-lg font-bold">Progress:</h3>
+            <div className="flex flex-col space-y-2 p-4">
+              <div className="flex flex-row items-center justify-between ">
+                <h3 className=" font-bold">Priority levels:</h3>
 
-              <div className="flex flex-row justify-end items-center space-x-2  w-1/2">
-                <Progress value={progress} className="rounded-none" />
-                <Badge>{progress ? progress.toFixed(0) : 0}%</Badge>
+                <div className="flex flex-row justify-end items-center space-x-2  w-1/2">
+                  <Badge className="bg-green-400 hover:bg-green-400/90">
+                    High
+                  </Badge>
+                  <Badge className="bg-yellow-400 hover:bg-yellow-400/90 ">
+                    Medium
+                  </Badge>
+                  <Badge className="bg-red-400 hover:bg-red-400/90">Low</Badge>
+                </div>
+              </div>
+              <div className="flex flex-row items-center justify-between">
+                <h3 className=" font-bold">Progress:</h3>
+
+                <div className="flex flex-row justify-end items-center space-x-2  w-1/2">
+                  <Progress value={progress} className="rounded-none" />
+                  <Badge>{progress ? progress.toFixed(0) : 0}%</Badge>
+                </div>
               </div>
             </div>
             <DragDropContext onDragEnd={handleDragEnd}>
@@ -267,7 +282,7 @@ function Index() {
                   <ul
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className="space-y-2"
+                    className="space-y-4"
                   >
                     {todos?.map(({ id, content, completed }, index) => {
                       return (
@@ -281,7 +296,7 @@ function Index() {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className="p-4 flex items-center gap-4"
+                              className={` transition-opacity fade-in border-l-2 p-4 flex items-center gap-4 ${index < 3 && " border-green-400"} ${index > 2 && index < 6 && "border-yellow-400"} ${index > 5 && " border-red-400"} bg-white`}
                             >
                               <div color="secondary">
                                 <Grip />
