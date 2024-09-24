@@ -5,6 +5,7 @@ import { Grip } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   LuCheck,
+  LuCopy,
   LuFileQuestion,
   LuPenSquare,
   LuTrash2,
@@ -29,13 +30,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 type TodoStore = {
   todos: Array<{ id: number; content: string; completed: boolean }>;
   addTodo: (content: string) => void;
   removeTodo: (id: number) => void;
   reorderTodos: (startIndex: number, endIndex: number) => void;
-  complete: (id: number) => void;
+  setComplete: (id: number) => void;
+  completedCount: number;
   cleanup: () => void;
 };
 
@@ -49,20 +52,18 @@ const useTodoStore = create(
           todos: [...state.todos, { id, content, completed: false }],
         }));
       },
-      removeTodo: (id) => {
+      removeTodo: (id) =>
         set((state) => ({
           todos: state.todos.filter((todo) => todo.id !== id),
-        }));
-      },
-      reorderTodos: (startIndex, endIndex) => {
+        })),
+      reorderTodos: (startIndex, endIndex) =>
         set((state) => {
           const todos = Array.from(state.todos);
           const [removed] = todos.splice(startIndex, 1);
           todos.splice(endIndex, 0, removed);
           return { todos };
-        });
-      },
-      complete: (id) => {
+        }),
+      setComplete: (id) => {
         const currTodo = get().todos.find((todo) => todo.id === id);
         if (currTodo) {
           set((state) => ({
@@ -71,12 +72,14 @@ const useTodoStore = create(
                 ? { ...todo, completed: !currTodo.completed }
                 : todo
             ),
+            completedCount: currTodo.completed
+              ? state.completedCount - 1
+              : state.completedCount + 1,
           }));
         }
       },
-      cleanup: () => {
-        set({ todos: [] });
-      },
+      completedCount: 0,
+      cleanup: () => set({ todos: [] }),
     }),
     {
       name: "todo-storage",
@@ -188,8 +191,16 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 };
 
 function Index() {
-  const { todos, addTodo, removeTodo, cleanup, reorderTodos, complete } =
-    useTodoStore();
+  const {
+    todos,
+    addTodo,
+    removeTodo,
+    cleanup,
+    reorderTodos,
+    setComplete,
+    completedCount,
+  } = useTodoStore();
+  const { toast } = useToast();
   const [newTodo, setNewTodo] = useState("");
   const [editTodo, setEditTodo] = useState<number | null>(null);
   const [editContent, setEditContent] = useState("");
@@ -251,12 +262,17 @@ function Index() {
           </div>
         </div>
 
+        <div>
+          <h2 className="text-xl font-bold p-4">
+            Completed Task Count: {completedCount}
+          </h2>
+        </div>
+
         {todos.length > 0 && (
           <div className="flex flex-col space-y-4 p-4">
             <div className="flex flex-col space-y-2 p-4">
               <div className="flex flex-row items-center justify-between ">
                 <h3 className=" font-bold">Priority levels:</h3>
-
                 <div className="flex flex-row justify-end items-center space-x-2  w-1/2">
                   <Badge className="bg-green-400 hover:bg-green-400/90">
                     High
@@ -269,10 +285,35 @@ function Index() {
               </div>
               <div className="flex flex-row items-center justify-between">
                 <h3 className=" font-bold">Progress:</h3>
-
                 <div className="flex flex-row justify-end items-center space-x-2  w-1/2">
                   <Progress value={progress} className="rounded-none" />
                   <Badge>{progress ? progress.toFixed(0) : 0}%</Badge>
+                </div>
+              </div>
+              <div className="flex flex-row items-center justify-end">
+                <div className="flex flex-row justify-end items-center space-x-2  w-1/2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        todos
+                          .map(
+                            (todo, i) =>
+                              `${i + 1}. ${capitaliseFirstLetter(todo.content)}`
+                          )
+                          .join("\n")
+                      );
+                      toast({
+                        title: "Todo list copied 🎉",
+                      });
+                    }}
+                  >
+                    <div className="space-x-2 flex flex-row items-center">
+                      <p>Copy List</p>
+                      <LuCopy />
+                    </div>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -366,7 +407,7 @@ function Index() {
                                 <Button
                                   variant="outline"
                                   size="icon"
-                                  onClick={() => complete(id)}
+                                  onClick={() => setComplete(id)}
                                 >
                                   {completed ? <LuUndo /> : <LuCheck />}
                                 </Button>
