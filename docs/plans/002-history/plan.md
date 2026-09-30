@@ -2,7 +2,7 @@
 
 **Spec:** [docs/specs/001-timebox/spec.md](../../specs/001-timebox/spec.md) (v2: FR-020, FR-020a/b/c, FR-023, FR-024)
 **Spec change:** [diff.txt](./diff.txt) (v1 → v2; calendar and hosting parts go to plan 003)
-**Status:** Drafting
+**Status:** Approved (2026-09-30)
 
 ## Overview
 Days are kept forever instead of 7. When a new day starts, yesterday's unfinished tasks move in automatically with an Undo notice, and the old day marks them "moved to [date]". ‹ › arrows by the date browse past days read-only. Export/import to a JSON file plus a persistent-storage request protect history, with a one-time Safari notice (idea-vet addendum). Browser only, no server, no new dependencies. One PR.
@@ -66,6 +66,6 @@ src/
 - **Browse:** DayNav ‹ › → `setViewDate(key)` → App renders `days[viewDate]` read-only → "Today" clears it.
 - **Backup:** DataPanel Export → `backup.serialize(state)` → file. Import → `backup.parse(text)` → confirm → `importAll(data)` → `syncToday()`.
 
-## Open Questions
-- [ ] Should a carried task keep its placed time from yesterday? Plan says **no** (unplaced), since yesterday's slot rarely fits today.
-- [ ] Forward arrow past today disabled (no future planning, out of scope). OK?
+## Decisions (resolved 2026-09-30)
+- Carried tasks arrive unplaced.
+- The › arrow stops at today; no future days.
