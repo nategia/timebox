@@ -79,34 +79,37 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
 
   return (
     <section className="flex flex-col gap-3 rounded-lg border bg-card p-3 sm:p-4" aria-label="Timeline">
-      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-        {KINDS.map((k) => (
-          <span key={k} className="flex items-center gap-1">
-            <span className={cn("h-2 w-2 rounded-full", KIND_BG[k])} />
-            {KIND_LABEL[k]}
+      {/* Pinned under the header while the page scrolls, so the pick prompt and "why it didn't fit" stay in view. */}
+      <div className="sticky top-14 z-30 -mx-3 -mt-3 flex flex-col gap-3 rounded-t-lg bg-card px-3 pt-3 sm:-mx-4 sm:-mt-4 sm:px-4 sm:pt-4">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          {KINDS.map((k) => (
+            <span key={k} className="flex items-center gap-1">
+              <span className={cn("h-2 w-2 rounded-full", KIND_BG[k])} />
+              {KIND_LABEL[k]}
+            </span>
+          ))}
+          <span className="flex items-center gap-1">
+            <span className={cn("h-2 w-2 rounded-full", KIND_BG.fixed)} />
+            Meeting
           </span>
-        ))}
-        <span className="flex items-center gap-1">
-          <span className={cn("h-2 w-2 rounded-full", KIND_BG.fixed)} />
-          Meeting
-        </span>
-        <span className="ml-auto text-foreground">Planned {formatDuration(planned)}</span>
-      </div>
+          <span className="ml-auto text-foreground">Planned {formatDuration(planned)}</span>
+        </div>
 
-      {/* Pick bar swaps in for the meeting row so the grid never shifts under the cursor. */}
-      {!readOnly && (
-      <div className="flex min-h-10 flex-col justify-center">
-        {picked ? (
-          <PlacePicked task={picked} dayStart={dayStart} onPlace={(start) => place(picked.id, start)} />
-        ) : (
-          <MeetingForm onRejected={flash} />
+        {/* Pick bar swaps in for the meeting row so the grid never shifts under the cursor. */}
+        {!readOnly && (
+        <div className="flex min-h-10 flex-col justify-center">
+          {picked ? (
+            <PlacePicked task={picked} dayStart={dayStart} onPlace={(start) => place(picked.id, start)} />
+          ) : (
+            <MeetingForm onRejected={flash} />
+          )}
+        </div>
         )}
-      </div>
-      )}
 
-      <p role="status" aria-live="polite" className="min-h-5 text-sm text-destructive">
-        {message}
-      </p>
+        <p role="status" aria-live="polite" className="min-h-5 text-sm text-destructive">
+          {message}
+        </p>
+      </div>
 
       <div className="pt-2">
       <div
