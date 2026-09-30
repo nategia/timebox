@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayWindow, expandDay, zonedToUtc } from "./calendar";
+import { CalendarError, checkLinkShape, dayWindow, expandDay, zonedToUtc } from "./calendar";
 
 const ROME = "Europe/Rome";
 
@@ -145,3 +145,25 @@ describe("expandDay", () => {
     expect(starts).toEqual([...starts].sort());
   });
 });
+
+describe("link and content checks", () => {
+  it("accepts Google iCal and iCloud published links", () => {
+    expect(checkLinkShape("https://calendar.google.com/calendar/ical/me%40gmail.com/private-abc123/basic.ics")).toBeNull();
+    expect(checkLinkShape("webcal://p42-caldav.icloud.com/published/2/ABC")).toBeNull();
+  });
+
+  it("spots the Google Calendar page address", () => {
+    expect(checkLinkShape("https://calendar.google.com/calendar/u/1?cid=abc")).toBe("calendar_page_link");
+  });
+
+  it("refuses other hosts and schemes", () => {
+    expect(checkLinkShape("https://example.com/cal.ics")).toBe("not_a_calendar_link");
+    expect(checkLinkShape("http://calendar.google.com/calendar/ical/x/public/basic.ics")).toBe("not_a_calendar_link");
+    expect(checkLinkShape("not a url")).toBe("not_a_calendar_link");
+  });
+
+  it("refuses a sign-in page instead of crashing", () => {
+    expect(() => expandDay("<!doctype html><html>Sign in</html>", "2026-09-30", ROME)).toThrow(CalendarError);
+  });
+});
+

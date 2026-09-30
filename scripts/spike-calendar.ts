@@ -5,7 +5,7 @@
  * Prints to your terminal only; nothing is written or sent anywhere else.
  */
 import { readFileSync } from "node:fs";
-import { expandDay } from "../server/calendar";
+import { CalendarError, checkLinkShape, expandDay } from "../server/calendar";
 
 type Link = { name: string; url: string };
 
@@ -18,14 +18,35 @@ const keyOf = (d: Date) =>
 const today = new Date();
 const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
+const HINT: Record<string, string> = {
+  calendar_page_link: "That's the Google Calendar page address. Use Settings → your calendar → Integrate calendar → 'Secret address in iCal format'.",
+  not_a_calendar_link: "Not a Google iCal or iCloud published-calendar link.",
+  not_a_calendar: "The link didn't return a calendar file (often a sign-in page).",
+};
+
 for (const link of links) {
+  if (link.url.startsWith("PASTE_")) {
+    console.log(`\n== ${link.name}: skipped (placeholder)`);
+    continue;
+  }
+  const shapeError = checkLinkShape(link.url);
+  if (shapeError) {
+    console.log(`\n== ${link.name}: ${HINT[shapeError]}`);
+    continue;
+  }
   const url = link.url.replace(/^webcal:/i, "https:");
   const res = await fetch(url, { redirect: "follow" });
   const text = await res.text();
   console.log(`\n== ${link.name}: HTTP ${res.status}, ${Math.round(text.length / 1024)} KB, host ${new URL(res.url).host}`);
   for (const date of [keyOf(today), keyOf(tomorrow)]) {
     const t0 = performance.now();
-    const day = expandDay(text, date, tz);
+    let day;
+    try {
+      day = expandDay(text, date, tz);
+    } catch (e) {
+      console.log(`    ${e instanceof CalendarError ? HINT[e.code] : "Couldn't read this calendar."}`);
+      break;
+    }
     console.log(`\n  ${date} (${Math.round(performance.now() - t0)} ms, zone ${tz})`);
     for (const title of day.allDay) console.log(`    all day   ${title}`);
     for (const e of day.events) console.log(`    ${local(e.start)}–${local(e.end)}  ${e.title}`);

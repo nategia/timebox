@@ -1,6 +1,34 @@
 import ICAL from "ical.js";
 
 export type CalendarEvent = { title: string; start: string; end: string };
+
+/** User-safe failure categories; never carries upstream content. */
+export type CalendarErrorCode = "not_a_calendar_link" | "calendar_page_link" | "not_a_calendar";
+
+export class CalendarError extends Error {
+  constructor(readonly code: CalendarErrorCode) {
+    super(code);
+  }
+}
+
+/**
+ * Recognises the one mistake almost everyone makes first: copying the Google Calendar page's
+ * address (calendar.google.com/calendar/u/1?…) instead of the iCal link (…/calendar/ical/…/basic.ics).
+ */
+export function checkLinkShape(raw: string): CalendarErrorCode | null {
+  let url: URL;
+  try {
+    url = new URL(raw.trim().replace(/^webcal:/i, "https:"));
+  } catch {
+    return "not_a_calendar_link";
+  }
+  if (url.protocol !== "https:") return "not_a_calendar_link";
+  if (url.hostname === "calendar.google.com") {
+    return /^\/calendar\/ical\/[^/]+\/(private-[^/]+|public)\/basic\.ics$/.test(url.pathname) ? null : "calendar_page_link";
+  }
+  if (/^p\d+-caldav\.icloud\.com$/.test(url.hostname)) return url.pathname.startsWith("/published/") ? null : "not_a_calendar_link";
+  return "not_a_calendar_link";
+}
 export type CalendarDay = { events: CalendarEvent[]; allDay: string[] };
 
 /** Stops a pathological RRULE (e.g. every minute since 1970) from spinning the function. */
@@ -71,7 +99,15 @@ const isCancelled = (c: ICAL.Component) => String(c.getFirstPropertyValue("statu
  * all-day events (returned as titles), and events that cross midnight.
  */
 export function expandDay(ics: string, date: string, visitorTz: string): CalendarDay {
-  const root = new ICAL.Component(ICAL.parse(ics));
+  // A sign-in page or error page parses badly (and ical.js throws on HTML), so check first.
+  if (!/^\s*BEGIN:VCALENDAR/.test(ics)) throw new CalendarError("not_a_calendar");
+  let parsed: ReturnType<typeof ICAL.parse>;
+  try {
+    parsed = ICAL.parse(ics);
+  } catch {
+    throw new CalendarError("not_a_calendar");
+  }
+  const root = new ICAL.Component(parsed);
   const { from, to } = dayWindow(date, visitorTz);
   const vevents = root.getAllSubcomponents("vevent");
 
