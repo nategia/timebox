@@ -2,7 +2,7 @@ import { type DragEvent, type MouseEvent, useRef, useState } from "react";
 import { SLOT_MINUTES, formatDuration, formatTime, parseTime } from "@/domain/time";
 import { KIND_LABEL, KINDS, type Block, type Kind, type Task } from "@/domain/types";
 import { useFlash } from "@/hooks/use-flash";
-import { useDayStore, useToday } from "@/store/day-store";
+import { useDayStore, useIsPastView, useViewedDay } from "@/store/day-store";
 import { cn } from "@/lib/utils";
 import { BlockItem } from "./BlockItem";
 import { KIND_BG } from "./kind";
@@ -18,7 +18,8 @@ type Props = {
 };
 
 export function Timeline({ pickedTaskId, onPlaced }: Props) {
-  const { tasks, blocks } = useToday();
+  const { tasks, blocks } = useViewedDay();
+  const readOnly = useIsPastView();
   const { start: dayStart, end: dayEnd } = useDayStore((s) => s.settings);
   const { placeTask, moveBlock, resizeBlock, removeBlock } = useDayStore.getState();
   const { message, flash } = useFlash();
@@ -80,6 +81,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
       </div>
 
       {/* Pick bar swaps in for the meeting row so the grid never shifts under the cursor. */}
+      {!readOnly && (
       <div className="flex min-h-10 flex-col justify-center">
         {picked ? (
           <PlacePicked task={picked} dayStart={dayStart} onPlace={(start) => place(picked.id, start)} />
@@ -87,6 +89,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
           <MeetingForm onRejected={flash} />
         )}
       </div>
+      )}
 
       <p role="status" aria-live="polite" className="min-h-5 text-sm text-destructive">
         {message}
@@ -96,9 +99,9 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
         ref={grid}
         className={cn("relative select-none border-t", picked && "cursor-copy")}
         style={{ height: `calc(var(--slot-height) * ${total / SLOT_MINUTES})` }}
-        onClick={onGridClick}
-        onDragOver={(e) => e.dataTransfer.types.includes(TASK_DRAG_TYPE) && e.preventDefault()}
-        onDrop={onDrop}
+        onClick={readOnly ? undefined : onGridClick}
+        onDragOver={(e) => !readOnly && e.dataTransfer.types.includes(TASK_DRAG_TYPE) && e.preventDefault()}
+        onDrop={readOnly ? undefined : onDrop}
       >
         {hours.map((m) => (
           <div
@@ -117,6 +120,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
             kind={kindOf(block)}
             dayStart={dayStart}
             pxPerMinute={pxPerMinute}
+            readOnly={readOnly}
             onMove={(start) => moveBlock(block.id, start)}
             onResize={(minutes) => resizeBlock(block.id, minutes)}
             onRemove={() => removeBlock(block.id)}

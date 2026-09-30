@@ -11,7 +11,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 - [x] T001: Store v2 (keep forever, migration)
 - [x] T002: Auto carry-over + Undo
 - [x] T002a: Priority ranks + drag to reorder (added 2026-09-30, your request)
-- [ ] T003: Browse past days (read-only)
+- [x] T003: Browse past days (read-only)
 - [ ] T004: Backup export/import
 - [ ] T005: Persistent storage + Safari notice
 
@@ -47,14 +47,14 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [x] `dropIndex` tested
 
 ### T003: Browse past days (read-only)
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T002
 - **Acceptance Criteria:**
-  - [ ] `DayNav`: ‹ date › in the header, "Today" link when not on today; › disabled on today
-  - [ ] `viewDate` in store, not persisted; reload opens today
-  - [ ] Past day: timeline and tasks shown, no add/edit/drag/remove; done tasks ticked, carried ones "moved to [day]"
-  - [ ] Empty past day: "Nothing saved for this day"
-  - [ ] Store editing actions only write to today (test)
+  - [x] `DayNav`: ‹ date › in the header, "Today" link when not on today; › disabled on today
+  - [x] `viewDate` in store, not persisted; reload opens today
+  - [x] Past day: timeline and tasks shown, no add/edit/drag/remove; done tasks ticked, carried ones "moved to [day]"
+  - [x] Empty past day: "Nothing saved for this day"
+  - [x] Store editing actions only write to today (test)
 
 ### T004: Backup export/import
 - **Status:** `[ ]`

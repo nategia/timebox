@@ -1,9 +1,9 @@
 import { ArrowDown, ArrowUp, Check, GripVertical, Pencil, Trash2 } from "lucide-react";
 import { type DragEvent, useState } from "react";
 import { dropIndex } from "@/domain/order";
-import { formatDuration, formatTime } from "@/domain/time";
+import { formatDuration, formatShortDateKey, formatTime } from "@/domain/time";
 import type { Task } from "@/domain/types";
-import { useDayStore, useToday } from "@/store/day-store";
+import { useDayStore, useIsPastView, useViewedDay } from "@/store/day-store";
 import { cn } from "@/lib/utils";
 import { KIND_BG } from "./kind";
 import { TaskForm } from "./TaskForm";
@@ -16,7 +16,8 @@ type Props = {
 };
 
 export function TaskList({ pickedTaskId, onPick }: Props) {
-  const { tasks, blocks } = useToday();
+  const { tasks, blocks } = useViewedDay();
+  const readOnly = useIsPastView();
   const addTask = useDayStore((s) => s.addTask);
   const moveTask = useDayStore((s) => s.moveTask);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -44,20 +45,22 @@ export function TaskList({ pickedTaskId, onPick }: Props) {
 
   return (
     <section className="flex flex-col gap-3" aria-label="Tasks">
+      {!readOnly && (
       <TaskForm
         submitLabel="Add"
         onSubmit={addTask}
         onPasteMany={(names, settings) => names.forEach((name) => addTask({ ...settings, name }))}
       />
+      )}
       {tasks.length === 0 ? (
         <p className="px-1 text-sm text-muted-foreground">
-          Nothing here yet. Add what's on your plate today, or paste a list.
+          {readOnly ? "Nothing saved for this day." : "Nothing here yet. Add what's on your plate today, or paste a list."}
         </p>
       ) : (
         <>
         <p className="flex items-baseline justify-between px-1 text-xs text-muted-foreground">
           <span className="font-medium text-foreground">Priority</span>
-          <span>Top is most important · drag to reorder</span>
+          <span>{readOnly ? "Read-only" : "Top is most important · drag to reorder"}</span>
         </p>
         <ol
           className="flex flex-col gap-1"
@@ -65,7 +68,9 @@ export function TaskList({ pickedTaskId, onPick }: Props) {
           onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setDropGap(null)}
         >
           {tasks.map((task, index) =>
-            editingId === task.id ? (
+            readOnly ? (
+              <PastTaskRow key={task.id} task={task} index={index} start={startOf(task)} />
+            ) : editingId === task.id ? (
               <li key={task.id}>
                 <EditTask task={task} onDone={() => setEditingId(null)} />
               </li>
@@ -184,6 +189,36 @@ function TaskRow({ task, index, count, start, picked, onPick, onEdit, onDragOver
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
+    </li>
+  );
+}
+
+/** A task on a past day: what happened to it, nothing editable. */
+function PastTaskRow({ task, index, start }: { task: Task; index: number; start: number | undefined }) {
+  return (
+    <li className={cn("flex items-center gap-2 rounded-md border bg-card py-2 pl-2 pr-3 text-sm", task.done && "opacity-60")}>
+      <span
+        className={cn(
+          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-medium tabular-nums",
+          RANK_STYLE(index),
+        )}
+        aria-label={`Priority ${index + 1}`}
+      >
+        {index + 1}
+      </span>
+      <span
+        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border"
+        aria-label={task.done ? "Done" : "Not done"}
+      >
+        {task.done && <Check className="h-3 w-3" />}
+      </span>
+      <span className={cn("h-2 w-2 shrink-0 rounded-full", KIND_BG[task.kind])} aria-hidden />
+      <span className={cn("min-w-0 flex-1 truncate", task.done && "line-through")}>{task.name}</span>
+      <span className="shrink-0 text-xs text-muted-foreground">
+        {task.movedTo ? `Moved to ${formatShortDateKey(task.movedTo)}` : start !== undefined ? formatTime(start) : "Not done"}
+        {" · "}
+        {formatDuration(task.minutes)}
+      </span>
     </li>
   );
 }

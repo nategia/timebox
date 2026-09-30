@@ -7,7 +7,7 @@ const store = () => useDayStore.getState();
 const today = () => store().days[store().today];
 
 beforeEach(() => {
-  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 } });
+  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 }, viewDate: null });
   store().syncToday(new Date(2026, 8, 30, 9));
 });
 
@@ -40,6 +40,18 @@ describe("day store", () => {
     store().undoCarryOver();
     expect(today().tasks).toHaveLength(0);
     expect(store().days["2026-09-30"].tasks[0].movedTo).toBeUndefined();
+  });
+
+  it("browsing a past day never edits it", () => {
+    store().addTask(task);
+    store().syncToday(new Date(2026, 9, 1, 9));
+    store().setViewDate("2026-09-30");
+    expect(store().viewDate).toBe("2026-09-30");
+    store().addTask({ ...task, name: "New" });
+    expect(store().days["2026-10-01"].tasks.map((t) => t.name)).toContain("New");
+    expect(store().days["2026-09-30"].tasks.map((t) => t.name)).not.toContain("New");
+    store().setViewDate("2026-10-01");
+    expect(store().viewDate).toBeNull();
   });
 
   it("keeps every day", () => {

@@ -19,6 +19,8 @@ type State = {
   days: Days;
   settings: Settings;
   theme: Theme;
+  /** Past day being browsed, or null for today. Not persisted: a reload always opens today. */
+  viewDate: string | null;
 };
 
 type Actions = {
@@ -35,6 +37,7 @@ type Actions = {
   removeBlock: (id: string) => void;
   setSettings: (settings: Settings) => Validation;
   setTheme: (theme: Theme) => void;
+  setViewDate: (key: string | null) => void;
   /** Removes today's carried tasks and restores them as unfinished on the source day. */
   undoCarryOver: () => void;
   /** Hides the carry-over notice but keeps the tasks. */
@@ -115,6 +118,7 @@ export const useDayStore = create<State & Actions>()(
         days: {},
         settings: DEFAULT_SETTINGS,
         theme: "system",
+        viewDate: null,
 
         syncToday: (now = new Date()) => {
           const today = localDateKey(now);
@@ -220,6 +224,8 @@ export const useDayStore = create<State & Actions>()(
 
         setTheme: (theme) => set({ theme }),
 
+        setViewDate: (key) => set((s) => ({ viewDate: key === s.today ? null : key })),
+
         undoCarryOver: () => set((s) => ({ days: undoCarryOver(s.days, s.today) })),
 
         dismissCarryNotice: () => setDay((d) => ({ ...d, carriedIn: undefined })),
@@ -239,3 +245,9 @@ export const useDayStore = create<State & Actions>()(
 /** Today's day, or a stable empty one. */
 const EMPTY_DAY = emptyDay();
 export const useToday = () => useDayStore((s) => s.days[s.today] ?? EMPTY_DAY);
+
+/** The day on screen: today, or the past day being browsed. */
+export const useViewedDay = () => useDayStore((s) => s.days[s.viewDate ?? s.today] ?? EMPTY_DAY);
+
+/** True while browsing a past day. Every editing action writes to today only, so this is display-only. */
+export const useIsPastView = () => useDayStore((s) => s.viewDate !== null && s.viewDate < s.today);
