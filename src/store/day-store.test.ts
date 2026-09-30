@@ -48,4 +48,16 @@ describe("day store", () => {
     }
     expect(Object.keys(store().days)).toHaveLength(7);
   });
+
+  it("keeps a later day when the clock moves back", () => {
+    store().syncToday(new Date(2026, 9, 1, 0, 30));
+    store().addTask(task);
+    store().syncToday(new Date(2026, 8, 30, 23, 30));
+    expect(store().days["2026-10-01"]?.tasks).toHaveLength(1);
+  });
+
+  it("rejects day bounds off the 5-minute grid", () => {
+    expect(store().setSettings({ start: 487, end: 1260 }).ok).toBe(false);
+    expect(store().settings.start).toBe(480);
+  });
 });

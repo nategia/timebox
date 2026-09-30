@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { localDateKey } from "@/domain/time";
+import { SLOT_MINUTES, localDateKey } from "@/domain/time";
 import type { Block, DayBounds, Task } from "@/domain/types";
 import { type Validation, validateBlock } from "@/domain/validate";
 
@@ -50,11 +50,13 @@ const OK: Validation = { ok: true };
 
 /** Keeps today plus the most recent earlier days, DAYS_KEPT in total. */
 const pruneDays = (days: Record<string, Day>, today: string) => {
-  const earlier = Object.keys(days)
-    .filter((k) => k < today)
+  // Other days sorted, not just earlier ones: if the clock or timezone moves back,
+  // a "future" day is still the user's latest plan and must survive.
+  const others = Object.keys(days)
+    .filter((k) => k !== today)
     .sort()
     .slice(-(DAYS_KEPT - 1));
-  const keys = days[today] ? [...earlier, today] : earlier;
+  const keys = days[today] ? [...others, today] : others;
   return Object.fromEntries(keys.map((k) => [k, days[k]]));
 };
 
@@ -184,6 +186,9 @@ export const useDayStore = create<State & Actions>()(
           setDay((d) => ({ ...d, blocks: d.blocks.filter((b) => b.id !== id) })),
 
         setSettings: (settings) => {
+          if (settings.start % SLOT_MINUTES !== 0 || settings.end % SLOT_MINUTES !== 0) {
+            return { ok: false, reason: "Use 5-minute steps, like 08:00 or 08:05" };
+          }
           if (settings.end <= settings.start) {
             return { ok: false, reason: "Day must end after it starts" };
           }
