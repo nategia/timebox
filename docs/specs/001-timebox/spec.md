@@ -1,7 +1,7 @@
 # Spec: Timebox (personal AI timeboxer)
 
 ## Status
-Approved (v1). v2 changes below (history, auto carry-over, share-link calendars, hosted with owner-only AI): Draft, awaiting approval.
+Approved (v2, 2026-09-30): history, auto carry-over, backup, share-link calendars, hosted with owner-only AI.
 
 ## Overview
 A calm, browser-based planner for one person's day. You list tasks, Claude fits them into the free gaps around your calendar, and the plan goes onto Google Calendar. During the day it runs a live countdown and, when a block ends, lets you add time; the rest of the day re-flows around fixed meetings with a one-line reason. It's a free web app anyone can open from a shareable link; everyone's data stays in their own browser, and AI planning is private to the owner (v2). It also serves as the 10-workday usage test from `docs/idea-vet.md`.
