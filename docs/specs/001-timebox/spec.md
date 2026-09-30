@@ -1,0 +1,76 @@
+# Spec: Timebox (personal AI timeboxer)
+
+## Status
+Approved
+
+## Overview
+A calm, browser-based planner for one person's day. You list tasks, Claude fits them into the free gaps around your calendar, and the plan goes onto Google Calendar. During the day it runs a live countdown and, when a block ends, lets you add time; the rest of the day re-flows around fixed meetings with a one-line reason. It runs locally with your own keys and is ready to publish as open source. It also serves as the 10-workday usage test from `docs/idea-vet.md`.
+
+## User Stories
+- As Nathaniel, I can list today's tasks with a length so that I see what my day actually holds.
+- As Nathaniel, I can ask Claude to plan my day so that the important work lands in my best hours and my meetings stay untouched.
+- As Nathaniel, I can drag and adjust blocks myself so that the plan is mine, not the AI's.
+- As Nathaniel, I can send the plan to Google Calendar in one step so that my calendar matches my day.
+- As Nathaniel, I can see what I should be doing right now and how long is left.
+- As Nathaniel, when a block ends I can add 5, 10 or 30 minutes so that running over doesn't wreck the rest of my plan.
+- As someone who finds the repo on GitHub, I can run it with my own keys by following the README.
+
+## Functional Requirements
+
+### Tasks
+- FR-001: I can add a task with a name and a length of 5, 10, 15, 30 or 60 minutes (or a custom multiple of 5).
+- FR-002: I can mark a task as fixed (must not move) or flexible. Breaks are flexible and shrinkable by default.
+- FR-003: I can edit, reorder by priority, and delete tasks.
+
+### Day timeline
+- FR-004: Today shows as a vertical timeline in 5-minute steps, from a configurable day start to day end.
+- FR-005: Calendar events for today appear on the timeline as fixed blocks I cannot drag.
+- FR-006: I can place a task by dragging it (or pick-then-click) onto a free slot, move it, resize it, and remove it.
+- FR-007: A block cannot overlap another block; an invalid drop shows a short inline message and snaps back.
+- FR-008: Blocks are coloured by kind (deep work, body/outside, light/rest) with a small legend; total planned time is shown.
+
+### Plan it for me
+- FR-009: "Plan it for me" asks Claude to place all unplaced tasks into free gaps, most important first, with short breaks, never moving fixed blocks, and shows the result on the timeline before anything is saved to the calendar.
+- FR-010: The plan comes with a one-line summary of the reasoning. I can accept it, tweak it, or undo back to the previous state.
+- FR-011: If not everything fits, the tasks that didn't fit are listed as unplaced with a short note, not silently dropped.
+
+### Calendar
+- FR-012: I can connect my Google account; the app then reads today's events and treats them as fixed.
+- FR-013: "Send to calendar" creates one event per planned block (not for calendar events already there) and later updates or removes those same events when the plan changes, without touching events the app didn't create.
+- FR-014: Before sending, I see how many events will be created, changed and removed, and confirm.
+
+### Live day
+- FR-015: A "now" marker moves down the timeline; the current block is highlighted with its remaining time counting down.
+- FR-016: When a block ends, I get a browser notification: "[Block] done. Next: [next block]", with +5, +10 and +30 minute options where the browser supports buttons, and the same options in the app otherwise.
+- FR-017: Adding time extends the current block and re-flows the rest of the day: shrink breaks first, then move flexible tasks later, never move fixed blocks. A one-line reason explains what changed (e.g. "Shortened 15:00 break by 10 min, moved Read to 17:30").
+- FR-018: If the re-flow pushes tasks past the end of the day, those tasks become unplaced and are named in the reason.
+- FR-019: I can mark a block done early; the next block can start now (pulling the day earlier) or keep its time, my choice.
+
+### Persistence and setup
+- FR-020: Today's tasks and plan survive reloads and browser restarts on the same machine. A new day starts empty except for unfinished tasks, which I can carry over.
+- FR-021: The app runs locally from a single start command. Keys (Claude API key, Google OAuth client) are read from local configuration, never shipped in the repo, and a sample configuration file plus a README explain setup in under 15 minutes.
+- FR-022: Task names, calendar contents and model output are never logged.
+
+## Edge Cases & Error States
+- No Claude key or the AI call fails: planning shows a clear message; manual planning still works.
+- Google not connected or token expired: the timeline works without calendar events; a quiet banner offers to reconnect. Sending to calendar is disabled with the reason shown.
+- Notifications blocked: the in-app banner at block end still offers +5/+10/+30.
+- Tab in background or laptop asleep at block end: on return, the app shows what was missed and offers "add time" or "move on" for the overdue block.
+- A new calendar event appears mid-day that overlaps planned blocks: on the next refresh, the overlap is flagged and I can ask for a re-flow.
+- Claude returns a plan that breaks the rules (overlap, moves a fixed block): it is rejected and I see "Couldn't make a valid plan. Try again."
+- Zero tasks: an empty state invites me to add tasks or paste a list.
+
+## Out of Scope
+- Accounts, multi-user, sync across devices, hosting/deployment
+- Payments, waitlist, analytics
+- Phone app, menu bar app, native Mac app
+- Calendars other than Google; multiple Google calendars (primary only for v1)
+- Notion or other task-source import
+- Recurring tasks, multi-day planning
+
+## Decisions (resolved questions)
+- Google testing-mode reconnect: weekly reconnect is acceptable if the 7-day expiry is real (verify during build).
+- Day runs 08:00–21:00 by default, configurable.
+- Default model: Sonnet 5.
+- Unfinished tasks: ask each morning whether to carry them over.
+- Licence: MIT.
