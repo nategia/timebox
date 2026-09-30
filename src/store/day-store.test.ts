@@ -68,6 +68,14 @@ describe("day store", () => {
     expect(store().viewDate).toBeNull();
   });
 
+  it("syncToday doesn't write when nothing changed", () => {
+    let writes = 0;
+    const unsubscribe = useDayStore.subscribe(() => writes++);
+    store().syncToday(new Date(2026, 8, 30, 15));
+    unsubscribe();
+    expect(writes).toBe(0);
+  });
+
   it("keeps every day", () => {
     for (let d = 1; d <= 10; d++) {
       store().syncToday(new Date(2026, 9, d, 9));

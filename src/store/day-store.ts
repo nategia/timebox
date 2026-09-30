@@ -128,7 +128,11 @@ export const useDayStore = create<State & Actions>()(
         syncToday: (now = new Date()) => {
           const today = localDateKey(now);
           // Auto carry-over runs here: on load, tab focus and midnight rollover. It's a no-op once done for today.
-          set((s) => ({ today, days: carryOver(s.days, today, newId) }));
+          const { days, today: current } = get();
+          const next = carryOver(days, today, newId);
+          // Every set() rewrites saved data, so skip it when nothing changed.
+          if (today === current && next === days) return;
+          set({ today, days: next });
         },
 
         addTask: (task) =>
