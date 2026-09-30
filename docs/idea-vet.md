@@ -1,6 +1,6 @@
 # Idea vet: AI timeboxing with live re-plan
 
-**Date:** 2026-09-30 · **Verdict:** Park (as a paid product). Personal build allowed, time-boxed, with kill lines below.
+**Date:** 2026-09-30 · **Verdict:** Park. No web app yet: use the in-chat planner daily for 10 days first (tests 1, 2, 5).
 
 ## TL;DR
 - No hard blocker. Google Calendar is a sensitive scope: 100-user lifetime cap until verified, verification ~10 business days ([Google](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification), [Unipile](https://www.unipile.com/google-oauth-100-user-limit/)). AI cost is cheap (~$1-2/user/month).
@@ -80,7 +80,7 @@ First thing to break: Google's 100-user cap, then Supabase free tier pausing.
 
 ## Pivots (if tests 1-2 pass but 3-4 fail)
 1. **Personal tool only**: keep the in-chat planner plus the morning brief. Zero hosting, zero verification. Passes all kill checks.
-2. **Feature inside innrwork**: a "plan your day" step after the morning check-in (voice-first: say your tasks, get a timeboxed day). Serves innrwork's loop instead of a new product. Needs its own vet slice (checklist §10).
+2. **Feature inside innrwork** (weak): a "plan your day" step after the check-in. Fails checklist §10: auto re-flow is a commodity free elsewhere (FlowSavvy), and it adds scope before TestFlight. Not recommended.
 3. **Mac menu bar companion for an existing calendar**: tiny native app, no web push limits, one-tap +10. Only if 1 proves daily use.
 
 ## Sources
