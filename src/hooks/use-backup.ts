@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { type BackupData, type ParsedBackup, parseBackup, serializeBackup } from "@/domain/backup";
 import { localDateKey } from "@/domain/time";
-import { PERSIST_VERSION, migrate, useDayStore } from "@/store/day-store";
+import { PERSIST_VERSION, SNAPSHOT_KEY, migrate, useDayStore } from "@/store/day-store";
 
 /** Backups are a few hundred KB even after years; anything much bigger isn't ours. */
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -11,8 +11,8 @@ export function useBackup() {
   const importAll = useDayStore((s) => s.importAll);
 
   const exportBackup = useCallback(() => {
-    const { days, settings, theme } = useDayStore.getState();
-    const text = serializeBackup({ days, settings, theme }, PERSIST_VERSION, new Date());
+    const { days, settings, theme, calendars } = useDayStore.getState();
+    const text = serializeBackup({ days, settings, theme, calendars }, PERSIST_VERSION, new Date());
     const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;
@@ -29,5 +29,11 @@ export function useBackup() {
 
   const applyBackup = useCallback((data: BackupData) => importAll(data), [importAll]);
 
-  return { exportBackup, readBackup, applyBackup };
+  /** The automatic safety copy (see day-store), parsed like a backup file, or null if there isn't one. */
+  const readSafetyCopy = useCallback((): ParsedBackup | null => {
+    const text = localStorage.getItem(SNAPSHOT_KEY);
+    return text ? parseBackup(text, PERSIST_VERSION, migrate) : null;
+  }, []);
+
+  return { exportBackup, readBackup, applyBackup, readSafetyCopy };
 }

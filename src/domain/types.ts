@@ -52,5 +52,8 @@ export type Day = {
   carriedIn?: { from: string; taskIds: string[] };
 };
 
+/** A calendar share link the visitor added. `url` is a secret: never logged, shown masked. */
+export type Calendar = { id: string; name: string; url: string };
+
 /** Saved days keyed by local date, e.g. "2026-09-30". */
 export type Days = Record<string, Day>;

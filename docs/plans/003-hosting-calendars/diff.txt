@@ -1,0 +1,1 @@
+# No spec change this round: plan 003 implements already-approved spec 001 v2 (FR-005, FR-012/a/b/c/d, FR-021, FR-022, FR-025, FR-026).
