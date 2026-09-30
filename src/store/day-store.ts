@@ -2,15 +2,14 @@ import { create } from "zustand";
 import { type StateStorage, createJSONStorage, persist } from "zustand/middleware";
 import { SLOT_MINUTES, localDateKey } from "@/domain/time";
 import { carryOver, undoCarryOver } from "@/domain/carry-over";
-import type { Block, Day, DayBounds, Days, Task } from "@/domain/types";
+import type { Block, Day, DayBounds, Days, Task, Theme } from "@/domain/types";
 import { type Validation, validateBlock } from "@/domain/validate";
 
 export type { Day };
 
 export type Settings = DayBounds;
 
-/** "system" follows the OS appearance. */
-export type Theme = "system" | "light" | "dark";
+export type { Theme };
 
 export type NewTask = Pick<Task, "name" | "minutes" | "kind" | "fixed" | "isBreak">;
 
@@ -38,6 +37,8 @@ type Actions = {
   setSettings: (settings: Settings) => Validation;
   setTheme: (theme: Theme) => void;
   setViewDate: (key: string | null) => void;
+  /** Replaces every day, the settings and the theme with a backup. */
+  importAll: (data: Persisted) => void;
   /** Removes today's carried tasks and restores them as unfinished on the source day. */
   undoCarryOver: () => void;
   /** Hides the carry-over notice but keeps the tasks. */
@@ -52,9 +53,9 @@ const newId = () => crypto.randomUUID();
 
 const OK: Validation = { ok: true };
 
-const PERSIST_VERSION = 2;
+export const PERSIST_VERSION = 2;
 
-type Persisted = Pick<State, "days" | "settings" | "theme">;
+export type Persisted = Pick<State, "days" | "settings" | "theme">;
 
 /** v1 → v2: `carryOverHandled` renamed to `carryOverDone`. Days are kept forever from v2 on. */
 export function migrate(persisted: unknown, version: number): Persisted {
@@ -223,6 +224,11 @@ export const useDayStore = create<State & Actions>()(
         },
 
         setTheme: (theme) => set({ theme }),
+
+        importAll: (data) => {
+          set({ ...data, viewDate: null });
+          get().syncToday();
+        },
 
         setViewDate: (key) => set((s) => ({ viewDate: key === s.today ? null : key })),
 

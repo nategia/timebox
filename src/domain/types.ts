@@ -38,6 +38,11 @@ export type Block = {
 
 export type DayBounds = { start: number; end: number };
 
+/** "system" follows the OS appearance. */
+export type Theme = "system" | "light" | "dark";
+
+export const THEMES: readonly Theme[] = ["system", "light", "dark"];
+
 export type Day = {
   tasks: Task[];
   blocks: Block[];

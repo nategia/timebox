@@ -54,6 +54,20 @@ describe("day store", () => {
     expect(store().viewDate).toBeNull();
   });
 
+  it("import replaces everything and returns to today", () => {
+    store().addTask(task);
+    store().setViewDate("2026-09-20");
+    store().importAll({
+      days: { "2026-09-01": { tasks: [], blocks: [], carryOverDone: true } },
+      settings: { start: 540, end: 1080 },
+      theme: "light",
+    });
+    expect(Object.keys(store().days).sort()).toEqual(["2026-09-01", "2026-09-30"]);
+    expect(today().tasks).toHaveLength(0);
+    expect(store().settings.start).toBe(540);
+    expect(store().viewDate).toBeNull();
+  });
+
   it("keeps every day", () => {
     for (let d = 1; d <= 10; d++) {
       store().syncToday(new Date(2026, 9, d, 9));

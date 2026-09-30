@@ -8,6 +8,7 @@ import { useDayRollover } from "./hooks/use-day-rollover";
 import { useTheme } from "./hooks/use-theme";
 import { useFlash } from "./hooks/use-flash";
 import { formatDateKey } from "./domain/time";
+import { DataPanel } from "./components/DataPanel";
 import { DayNav } from "./components/DayNav";
 import { useDayStore, useIsPastView, useStorageStatus } from "./store/day-store";
 
@@ -58,6 +59,7 @@ export function App() {
         {!isPast && <CarryOver />}
         <TaskList pickedTaskId={pickedTaskId} onPick={setPickedTaskId} />
         <Timeline pickedTaskId={pickedTaskId} onPlaced={() => setPickedTaskId(null)} />
+        <DataPanel />
       </main>
     </div>
   );

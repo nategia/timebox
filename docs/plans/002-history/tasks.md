@@ -12,7 +12,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 - [x] T002: Auto carry-over + Undo
 - [x] T002a: Priority ranks + drag to reorder (added 2026-09-30, your request)
 - [x] T003: Browse past days (read-only)
-- [ ] T004: Backup export/import
+- [x] T004: Backup export/import
 - [ ] T005: Persistent storage + Safari notice
 
 ---
@@ -57,13 +57,13 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [x] Store editing actions only write to today (test)
 
 ### T004: Backup export/import
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T001
 - **Acceptance Criteria:**
-  - [ ] `domain/backup.ts`: serialize `{ app, version, exportedAt, data }`; parse validates with type guards, migrates older versions, rejects other files with a reason
-  - [ ] Export downloads `timebox-backup-YYYY-MM-DD.json`
-  - [ ] Import asks inline "Replace all your days?" before replacing; cancel changes nothing
-  - [ ] Tests: round-trip, wrong app, malformed JSON, v1 file
+  - [x] `domain/backup.ts`: serialize `{ app, version, exportedAt, data }`; parse validates with type guards, migrates older versions, rejects other files with a reason
+  - [x] Export downloads `timebox-backup-YYYY-MM-DD.json`
+  - [x] Import asks inline "Replace all your days?" before replacing; cancel changes nothing
+  - [x] Tests: round-trip, wrong app, malformed JSON, v1 file
 
 ### T005: Persistent storage + Safari notice
 - **Status:** `[ ]`
