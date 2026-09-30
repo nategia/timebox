@@ -313,7 +313,8 @@ export const useDayStore = create<State & Actions>()(
 
         importAll: (data) => {
           // Older backups have no calendars: keep the ones already added rather than wiping them.
-          set((s) => ({ ...data, calendars: data.calendars ?? s.calendars, viewDate: null }));
+          // Undo entries point at the old data, so they can't apply to the imported one.
+          set((s) => ({ ...data, calendars: data.calendars ?? s.calendars, viewDate: null, undoStack: [] }));
           get().syncToday();
         },
 

@@ -85,6 +85,61 @@ DTSTART;TZID=Europe/Rome:20261001T100000
 DTEND;TZID=Europe/Rome:20261001T110000`),
 );
 
+const MOVED_AND_LONG = ics(
+  // Daily sync; yesterday's instance moved to next Monday, and next Friday's pulled into today.
+  vevent(`UID:daily
+SUMMARY:Daily
+DTSTART;TZID=Europe/Rome:20260101T090000
+DTEND;TZID=Europe/Rome:20260101T091500
+RRULE:FREQ=DAILY`),
+  vevent(`UID:daily
+RECURRENCE-ID;TZID=Europe/Rome:20260929T090000
+SUMMARY:Daily (moved out)
+DTSTART;TZID=Europe/Rome:20261005T090000
+DTEND;TZID=Europe/Rome:20261005T091500`),
+  vevent(`UID:daily
+RECURRENCE-ID;TZID=Europe/Rome:20261009T090000
+SUMMARY:Daily (pulled in)
+DTSTART;TZID=Europe/Rome:20260930T170000
+DTEND;TZID=Europe/Rome:20260930T171500`),
+  // Hourly since 2023: ~33k occurrences before today.
+  vevent(`UID:hourly
+SUMMARY:Hourly
+DTSTART;TZID=Europe/Rome:20230101T000000
+DTEND;TZID=Europe/Rome:20230101T000500
+RRULE:FREQ=HOURLY`),
+  // Every other Wednesday from 2 Sep: 30 Sep is on, 23 Sep isn't.
+  vevent(`UID:biweekly
+SUMMARY:Biweekly
+DTSTART;TZID=Europe/Rome:20260902T160000
+DTEND;TZID=Europe/Rome:20260902T163000
+RRULE:FREQ=WEEKLY;INTERVAL=2`),
+);
+
+describe("expandDay, moved instances and long series", () => {
+  const titles = (date: string) => expandDay(MOVED_AND_LONG, date, ROME).events.map((e) => e.title);
+
+  it("keeps going past a past instance moved into the future", () => {
+    expect(titles("2026-09-30")).toContain("Daily");
+  });
+
+  it("finds an instance pulled into today from next week", () => {
+    expect(titles("2026-09-30")).toContain("Daily (pulled in)");
+    expect(titles("2026-10-09")).not.toContain("Daily");
+  });
+
+  it("reaches today in a long hourly series, quickly", () => {
+    const t0 = performance.now();
+    expect(titles("2026-09-30").filter((t) => t === "Hourly")).toHaveLength(24);
+    expect(performance.now() - t0).toBeLessThan(1500);
+  });
+
+  it("keeps INTERVAL alignment to the real start", () => {
+    expect(titles("2026-09-30")).toContain("Biweekly");
+    expect(titles("2026-09-23")).not.toContain("Biweekly");
+  });
+});
+
 describe("zonedToUtc / dayWindow", () => {
   it("converts Rome wall time across DST", () => {
     expect(new Date(zonedToUtc(2026, 9, 30, 10, 0, 0, ROME)).toISOString()).toBe("2026-09-30T08:00:00.000Z");

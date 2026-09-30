@@ -22,8 +22,10 @@ export class CalendarError extends Error {
 
 export type CalendarDay = { events: CalendarEvent[]; allDay: string[] };
 
+/** Instances can be moved up to this far into or out of today and still be found. */
+const MOVE_MARGIN_MS = 31 * 86_400_000;
 /** Stops a pathological RRULE (e.g. every minute since 1970) from spinning the function. */
-const MAX_OCCURRENCES = 20_000;
+const EXPANSION_BUDGET_MS = 2_000;
 
 const isValidTimeZone = (tz: string) => {
   try {
@@ -144,15 +146,19 @@ export function expandDay(ics: string, date: string, visitorTz: string): Calenda
     }
     for (const override of overrides.get(event.uid) ?? []) event.relateException(override);
 
+    // Walk the series from its real DTSTART (re-anchoring would shift INTERVAL/BYMONTHDAY rules).
+    // Occurrences arrive in order of their *original* slot, so decide on that, not on where an
+    // override moved them: a past instance moved to next week must not end the walk.
+    const tzidParam = master.getFirstProperty("dtstart")?.getParameter("tzid");
+    const tzid = typeof tzidParam === "string" ? tzidParam : null;
+    const originalMs = (t: ICAL.Time) => (t.isDate ? Date.UTC(t.year, t.month - 1, t.day) : toUtcMs(t, tzid, visitorTz));
+    const deadline = Date.now() + EXPANSION_BUDGET_MS;
     const it = event.iterator();
-    for (let i = 0, next = it.next(); next && i < MAX_OCCURRENCES; i++, next = it.next()) {
+    for (let next = it.next(); next && Date.now() < deadline; next = it.next()) {
+      const slot = originalMs(next);
+      if (slot >= to + MOVE_MARGIN_MS) break;
+      if (slot < from - MOVE_MARGIN_MS) continue; // cheap skip: no details for old occurrences
       const details = event.getOccurrenceDetails(next);
-      const tzid = master.getFirstProperty("dtstart")?.getParameter("tzid");
-      const startMs = details.startDate.isDate
-        ? Date.UTC(details.startDate.year, details.startDate.month - 1, details.startDate.day)
-        : toUtcMs(details.startDate, typeof tzid === "string" ? tzid : null, visitorTz);
-      // Occurrences come in start order; one day past the window is safely beyond it.
-      if (startMs >= to + 86_400_000) break;
       add(details.item.component, details.startDate, details.endDate, details.item.summary || title);
     }
   }

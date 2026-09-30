@@ -97,6 +97,13 @@ describe("day store", () => {
     expect(today().blocks).toHaveLength(1);
   });
 
+  it("import clears the undo history", () => {
+    store().addTask(task);
+    store().deleteTask(today().tasks[0].id);
+    store().importAll({ days: {}, settings: { start: 480, end: 1260 }, theme: "dark" });
+    expect(store().undoStack).toEqual([]);
+  });
+
   it("an older backup without calendars keeps the ones already added", () => {
     store().addCalendar("Home", "https://p52-caldav.icloud.com/published/2/abc");
     store().importAll({ days: {}, settings: { start: 480, end: 1260 }, theme: "dark" });
