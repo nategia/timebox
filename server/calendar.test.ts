@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { CalendarError, checkLinkShape, dayWindow, expandDay, zonedToUtc } from "./calendar";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { CalendarError, checkLinkShape, dayWindow, expandDay, fetchIcs, handleCalendarRequest, zonedToUtc } from "./calendar";
 
 const ROME = "Europe/Rome";
 
@@ -167,3 +167,98 @@ describe("link and content checks", () => {
   });
 });
 
+
+describe("fetchIcs guards", () => {
+  const GOOGLE = "https://calendar.google.com/calendar/ical/me%40gmail.com/private-abc/basic.ics";
+  const ICLOUD = "https://p52-caldav.icloud.com/published/2/abc";
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  const stubFetch = (...responses: Response[]) => {
+    const calls: string[] = [];
+    vi.stubGlobal("fetch", async (url: URL) => {
+      calls.push(String(url));
+      return responses.shift() ?? new Response("", { status: 500 });
+    });
+    return calls;
+  };
+
+  it("follows a redirect between iCloud hosts", async () => {
+    const calls = stubFetch(
+      new Response(null, { status: 301, headers: { location: "https://p60-caldav.icloud.com/published/2/abc" } }),
+      new Response(FIXTURE),
+    );
+    expect(await fetchIcs(ICLOUD)).toContain("BEGIN:VCALENDAR");
+    expect(calls).toEqual([ICLOUD, "https://p60-caldav.icloud.com/published/2/abc"]);
+  });
+
+  it("refuses a redirect to another host (sign-in page, or anywhere else)", async () => {
+    stubFetch(new Response(null, { status: 302, headers: { location: "https://accounts.google.com/signin" } }));
+    await expect(fetchIcs(GOOGLE)).rejects.toMatchObject({ code: "not_a_calendar" });
+  });
+
+  it("never fetches a disallowed link at all", async () => {
+    const calls = stubFetch(new Response(FIXTURE));
+    await expect(fetchIcs("https://169.254.169.254/latest/meta-data")).rejects.toMatchObject({ code: "not_a_calendar_link" });
+    expect(calls).toEqual([]);
+  });
+
+  it("gives up on responses over 5 MB", async () => {
+    stubFetch(new Response("x".repeat(5 * 1024 * 1024 + 1)));
+    await expect(fetchIcs(GOOGLE)).rejects.toMatchObject({ code: "too_large" });
+  });
+
+  it("stops after too many redirects", async () => {
+    const hop = () => new Response(null, { status: 302, headers: { location: ICLOUD } });
+    stubFetch(hop(), hop(), hop(), hop());
+    await expect(fetchIcs(ICLOUD)).rejects.toMatchObject({ code: "unreachable" });
+  });
+
+  it("maps network failures and timeouts to unreachable", async () => {
+    vi.stubGlobal("fetch", async () => {
+      throw new DOMException("timed out", "TimeoutError");
+    });
+    await expect(fetchIcs(GOOGLE)).rejects.toMatchObject({ code: "unreachable" });
+  });
+});
+
+describe("handleCalendarRequest", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const post = (body: unknown, init: RequestInit = {}) =>
+    handleCalendarRequest(
+      new Request("http://localhost/api/calendar", { method: "POST", body: JSON.stringify(body), ...init }),
+    );
+
+  it("returns today's events", async () => {
+    vi.stubGlobal("fetch", async () => new Response(FIXTURE));
+    const res = await post({
+      url: "https://calendar.google.com/calendar/ical/x/private-y/basic.ics",
+      date: "2026-09-30",
+      tz: ROME,
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    const body = (await res.json()) as { events: unknown[]; allDay: string[] };
+    expect(body.allDay).toEqual(["Holiday"]);
+    expect(body.events.length).toBeGreaterThan(0);
+  });
+
+  it("rejects bad bodies and methods", async () => {
+    expect((await post({ url: "x", date: "30/09/2026", tz: ROME })).status).toBe(400);
+    expect((await post({ url: "x", date: "2026-09-30", tz: "Mars/Olympus" })).status).toBe(400);
+    expect((await handleCalendarRequest(new Request("http://localhost/api/calendar"))).status).toBe(405);
+    expect((await post({ url: "x".repeat(5000), date: "2026-09-30", tz: ROME })).status).toBe(413);
+  });
+
+  it("returns a category, never upstream content", async () => {
+    vi.stubGlobal("fetch", async () => new Response("<html>secret sign-in page</html>"));
+    const res = await post({
+      url: "https://calendar.google.com/calendar/ical/x/private-y/basic.ics",
+      date: "2026-09-30",
+      tz: ROME,
+    });
+    expect(res.status).toBe(422);
+    expect(await res.text()).toBe('{"error":"not_a_calendar"}');
+  });
+});

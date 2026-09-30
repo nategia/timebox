@@ -3,13 +3,26 @@ import ICAL from "ical.js";
 export type CalendarEvent = { title: string; start: string; end: string };
 
 /** User-safe failure categories; never carries upstream content. */
-export type CalendarErrorCode = "not_a_calendar_link" | "calendar_page_link" | "not_a_calendar";
+export type CalendarErrorCode =
+  | "not_a_calendar_link"
+  | "calendar_page_link"
+  | "not_a_calendar"
+  | "unreachable"
+  | "too_large"
+  | "bad_request";
 
 export class CalendarError extends Error {
   constructor(readonly code: CalendarErrorCode) {
     super(code);
   }
 }
+
+const GOOGLE_HOST = "calendar.google.com";
+const ICLOUD_HOST = /^p\d+-caldav\.icloud\.com$/;
+
+/** Only these hosts are ever fetched, including after redirects (keeps the function from being an open proxy). */
+const isAllowedHost = (url: URL) =>
+  url.protocol === "https:" && (url.hostname === GOOGLE_HOST || ICLOUD_HOST.test(url.hostname));
 
 /**
  * Recognises the one mistake almost everyone makes first: copying the Google Calendar page's
@@ -23,10 +36,10 @@ export function checkLinkShape(raw: string): CalendarErrorCode | null {
     return "not_a_calendar_link";
   }
   if (url.protocol !== "https:") return "not_a_calendar_link";
-  if (url.hostname === "calendar.google.com") {
+  if (url.hostname === GOOGLE_HOST) {
     return /^\/calendar\/ical\/[^/]+\/(private-[^/]+|public)\/basic\.ics$/.test(url.pathname) ? null : "calendar_page_link";
   }
-  if (/^p\d+-caldav\.icloud\.com$/.test(url.hostname)) return url.pathname.startsWith("/published/") ? null : "not_a_calendar_link";
+  if (ICLOUD_HOST.test(url.hostname)) return url.pathname.startsWith("/published/") ? null : "not_a_calendar_link";
   return "not_a_calendar_link";
 }
 export type CalendarDay = { events: CalendarEvent[]; allDay: string[] };
@@ -169,3 +182,106 @@ export function expandDay(ics: string, date: string, visitorTz: string): Calenda
   events.sort((a, b) => a.start.localeCompare(b.start));
   return { events, allDay };
 }
+
+const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_REDIRECTS = 2;
+const TIMEOUT_MS = 8_000;
+
+/** Reads a body, giving up past MAX_BYTES instead of buffering an unbounded response. */
+async function readCapped(res: Response): Promise<string> {
+  const declared = Number(res.headers.get("content-length"));
+  if (declared > MAX_BYTES) throw new CalendarError("too_large");
+  if (!res.body) return "";
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_BYTES) {
+      await reader.cancel();
+      throw new CalendarError("too_large");
+    }
+    chunks.push(value);
+  }
+  return new TextDecoder().decode(Buffer.concat(chunks));
+}
+
+/**
+ * Fetches a calendar share link. Redirects are followed by hand so every hop is
+ * re-checked against the allowlist (iCloud hops between pNN hosts; a Google link to a
+ * private calendar redirects to accounts.google.com, which we treat as "not a calendar").
+ */
+export async function fetchIcs(link: string): Promise<string> {
+  const shape = checkLinkShape(link);
+  if (shape) throw new CalendarError(shape);
+  let url = new URL(link.trim().replace(/^webcal:/i, "https:"));
+
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "GET",
+        redirect: "manual",
+        headers: { accept: "text/calendar" },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+    } catch {
+      throw new CalendarError("unreachable");
+    }
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get("location");
+      if (!location) throw new CalendarError("unreachable");
+      const next = new URL(location, url);
+      if (!isAllowedHost(next)) throw new CalendarError("not_a_calendar");
+      url = next;
+      continue;
+    }
+    if (!res.ok) throw new CalendarError("unreachable");
+    return readCapped(res);
+  }
+  throw new CalendarError("unreachable");
+}
+
+const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_BODY_BYTES = 4096;
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  });
+
+/**
+ * POST { url, date, tz } → { events, allDay } | { error }.
+ * The link is only ever read from the body (never the query string, so it stays out of
+ * access logs), and nothing here logs the link, the body or the events (FR-022).
+ */
+export async function handleCalendarRequest(request: Request): Promise<Response> {
+  if (request.method !== "POST") return json({ error: "bad_request" }, 405);
+  if (Number(request.headers.get("content-length")) > MAX_BODY_BYTES) return json({ error: "bad_request" }, 413);
+
+  let body: unknown;
+  try {
+    const text = await request.text();
+    if (text.length > MAX_BODY_BYTES) return json({ error: "bad_request" }, 413);
+    body = JSON.parse(text);
+  } catch {
+    return json({ error: "bad_request" }, 400);
+  }
+  const { url, date, tz } = (body ?? {}) as Record<string, unknown>;
+  if (typeof url !== "string" || url.length > 2048 || typeof date !== "string" || !DATE_KEY.test(date)) {
+    return json({ error: "bad_request" }, 400);
+  }
+  if (typeof tz !== "string" || !isValidTimeZone(tz)) return json({ error: "bad_request" }, 400);
+
+  try {
+    const ics = await fetchIcs(url);
+    return json(expandDay(ics, date, tz));
+  } catch (e) {
+    const code: CalendarErrorCode = e instanceof CalendarError ? e.code : "not_a_calendar";
+    return json({ error: code }, code === "unreachable" ? 502 : 422);
+  }
+}
+

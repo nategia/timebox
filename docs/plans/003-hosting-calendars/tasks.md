@@ -9,7 +9,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 ## Progress
 
 - [x] T001: Spike: fetch + expand your real calendars (partial pass; real-recurrence check moved to T004)
-- [ ] T002: `/api/calendar` function, guards, dev middleware
+- [x] T002: `/api/calendar` function, guards, dev middleware
 - [ ] T003: Store v3 (`calendars`, `externalBlocks`) + backups
 - [ ] T004: Calendar settings, live events on the timeline
 - [ ] T005: Vercel config, headers, README, first deploy
@@ -26,14 +26,14 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [x] Fixture tests (no real data): weekly RRULE, EXDATE, RECURRENCE-ID override, cancelled instance, all-day, event crossing midnight, TZID without VTIMEZONE, DST day in Europe/Rome
 
 ### T002: `/api/calendar` function, guards, dev middleware
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T001
 - **Acceptance Criteria:**
-  - [ ] `validateLink`: `webcal`→`https`; only `calendar.google.com` and `pNN-caldav.icloud.com`; rejects others (`not_a_calendar_link`)
-  - [ ] `fetchIcs`: manual redirects (max 2, each re-validated), 8 s timeout, 5 MB streamed cap, GET only
-  - [ ] `api/calendar.ts` POST `{ url, from, to }` (≤ 48 h), returns `{ events, allDay }` or `{ error }` categories; no logging of url/body/events
-  - [ ] Vite dev middleware serves the same handler at `/api/calendar`
-  - [ ] Tests: allowlist, redirect to disallowed host, oversize, timeout, bad body
+  - [x] `validateLink`: `webcal`→`https`; only `calendar.google.com` and `pNN-caldav.icloud.com`; rejects others (`not_a_calendar_link`)
+  - [x] `fetchIcs`: manual redirects (max 2, each re-validated), 8 s timeout, 5 MB streamed cap, GET only
+  - [x] `api/calendar.ts` POST `{ url, date, tz }` (server computes the local day window), returns `{ events, allDay }` or `{ error }` categories; no logging of url/body/events
+  - [x] Vite dev middleware serves the same handler at `/api/calendar`
+  - [x] Tests: allowlist, redirect to disallowed host, oversize, timeout, bad body
 
 ### T003: Store v3 (`calendars`, `externalBlocks`) + backups
 - **Status:** `[ ]`
