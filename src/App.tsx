@@ -9,6 +9,7 @@ import { useTheme } from "./hooks/use-theme";
 import { useFlash } from "./hooks/use-flash";
 import { formatDateKey } from "./domain/time";
 import { DataPanel } from "./components/DataPanel";
+import { UndoToast } from "./components/UndoToast";
 import { DayNav } from "./components/DayNav";
 import { useDayStore, useIsPastView, useStorageStatus } from "./store/day-store";
 
@@ -60,6 +61,7 @@ export function App() {
         <TaskList pickedTaskId={pickedTaskId} onPick={setPickedTaskId} />
         <Timeline pickedTaskId={pickedTaskId} onPlaced={() => setPickedTaskId(null)} />
         <DataPanel />
+        <UndoToast />
       </main>
     </div>
   );

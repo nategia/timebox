@@ -14,6 +14,12 @@ export type { Theme };
 
 export type NewTask = Pick<Task, "name" | "minutes" | "kind" | "fixed" | "isBreak">;
 
+/** The last delete, kept briefly so it can be undone. Restores just what was deleted, not the whole day. */
+export type UndoEntry =
+  | { kind: "task"; label: string; date: string; task: Task; index: number; block?: Block }
+  | { kind: "block"; label: string; date: string; block: Block }
+  | { kind: "calendar"; label: string; calendar: Calendar; index: number };
+
 type State = {
   today: string;
   days: Days;
@@ -29,6 +35,8 @@ type State = {
    * they're re-fetched, so a cancelled meeting disappears and history stays your own plan.
    */
   externalBlocks: Block[];
+  /** Not persisted: an undo only makes sense in the moment. */
+  undo: UndoEntry | null;
 };
 
 type Actions = {
@@ -51,6 +59,9 @@ type Actions = {
   dismissSafariNotice: () => void;
   addCalendar: (name: string, url: string) => { ok: true; id: string } | { ok: false; problem: LinkProblem | "duplicate" };
   removeCalendar: (id: string) => void;
+  /** Reverses the last delete (task, block or calendar). */
+  undoDelete: () => void;
+  clearUndo: () => void;
   setExternalBlocks: (blocks: Block[]) => void;
   /** Removes today's carried tasks and restores them as unfinished on the source day. */
   undoCarryOver: () => void;
@@ -172,6 +183,7 @@ export const useDayStore = create<State & Actions>()(
         safariNoticeDismissed: false,
         calendars: [],
         externalBlocks: [],
+        undo: null,
 
         syncToday: (now = new Date()) => {
           const today = localDateKey(now);
@@ -207,12 +219,19 @@ export const useDayStore = create<State & Actions>()(
           );
         },
 
-        deleteTask: (id) =>
+        deleteTask: (id) => {
+          const current = day();
+          const index = current.tasks.findIndex((t) => t.id === id);
+          if (index < 0) return;
+          const task = current.tasks[index];
+          const block = current.blocks.find((b) => b.source === "task" && b.taskId === id);
           setDay((d) => ({
             ...d,
             tasks: d.tasks.filter((t) => t.id !== id),
             blocks: d.blocks.filter((b) => !(b.source === "task" && b.taskId === id)),
-          })),
+          }));
+          set({ undo: { kind: "task", label: task.name, date: get().today, task, index, block } });
+        },
 
         moveTask: (id, toIndex) =>
           setDay((d) => {
@@ -261,8 +280,14 @@ export const useDayStore = create<State & Actions>()(
           );
         },
 
-        removeBlock: (id) =>
-          setDay((d) => ({ ...d, blocks: d.blocks.filter((b) => b.id !== id) })),
+        removeBlock: (id) => {
+          const block = day().blocks.find((b) => b.id === id);
+          if (!block) return;
+          setDay((d) => ({ ...d, blocks: d.blocks.filter((b) => b.id !== id) }));
+          const label =
+            block.source === "event" ? block.title : (day().tasks.find((t) => t.id === block.taskId)?.name ?? "block");
+          set({ undo: { kind: "block", label: `${label} from the timeline`, date: get().today, block } });
+        },
 
         setSettings: (settings) => {
           if (settings.start % SLOT_MINUTES !== 0 || settings.end % SLOT_MINUTES !== 0) {
@@ -298,7 +323,44 @@ export const useDayStore = create<State & Actions>()(
           return { ok: true, id };
         },
 
-        removeCalendar: (id) => set((s) => ({ calendars: s.calendars.filter((c) => c.id !== id) })),
+        removeCalendar: (id) => {
+          const index = get().calendars.findIndex((c) => c.id === id);
+          if (index < 0) return;
+          const calendar = get().calendars[index];
+          set((s) => ({
+            calendars: s.calendars.filter((c) => c.id !== id),
+            undo: { kind: "calendar", label: calendar.name, calendar, index },
+          }));
+        },
+
+        undoDelete: () => {
+          const entry = get().undo;
+          set({ undo: null });
+          if (!entry) return;
+          if (entry.kind === "calendar") {
+            set((s) => {
+              const calendars = [...s.calendars];
+              calendars.splice(Math.min(entry.index, calendars.length), 0, entry.calendar);
+              return { calendars };
+            });
+            return;
+          }
+          // Deletes only ever happen on today; if midnight passed since, the undo no longer applies.
+          if (entry.date !== get().today) return;
+          if (entry.kind === "task") {
+            setDay((d) => {
+              const tasks = [...d.tasks];
+              tasks.splice(Math.min(entry.index, tasks.length), 0, entry.task);
+              return { ...d, tasks };
+            });
+            // Put the block back only if its slot is still free; otherwise the task returns unplaced.
+            if (entry.block) commitBlock(entry.block);
+            return;
+          }
+          commitBlock(entry.block);
+        },
+
+        clearUndo: () => set({ undo: null }),
 
         setExternalBlocks: (externalBlocks) => set({ externalBlocks }),
 

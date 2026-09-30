@@ -7,7 +7,7 @@ const store = () => useDayStore.getState();
 const today = () => store().days[store().today];
 
 beforeEach(() => {
-  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 }, viewDate: null, calendars: [], externalBlocks: [] });
+  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 }, viewDate: null, calendars: [], externalBlocks: [], undo: null });
   store().syncToday(new Date(2026, 8, 30, 9));
 });
 
@@ -101,6 +101,53 @@ describe("day store", () => {
     store().addCalendar("Home", "https://p52-caldav.icloud.com/published/2/abc");
     store().importAll({ days: {}, settings: { start: 480, end: 1260 }, theme: "dark" });
     expect(store().calendars).toHaveLength(1);
+  });
+
+  it("undo brings back a deleted task, in place, with its block", () => {
+    store().addTask(task);
+    store().addTask({ ...task, name: "Second" });
+    const [first] = today().tasks;
+    store().placeTask(first.id, 540);
+    store().deleteTask(first.id);
+    expect(store().undo).toMatchObject({ kind: "task", label: "Write" });
+    store().undoDelete();
+    expect(today().tasks.map((t) => t.name)).toEqual(["Write", "Second"]);
+    expect(today().blocks[0]).toMatchObject({ taskId: first.id, start: 540 });
+    expect(store().undo).toBeNull();
+  });
+
+  it("undo returns a task unplaced if its slot was taken meanwhile", () => {
+    store().addTask(task);
+    store().addTask({ ...task, name: "Other" });
+    const [a, b] = today().tasks;
+    store().placeTask(a.id, 540);
+    store().deleteTask(a.id);
+    store().placeTask(b.id, 540);
+    store().undoDelete();
+    expect(today().tasks.map((t) => t.name)).toContain("Write");
+    expect(today().blocks.map((x) => (x.source === "task" ? x.taskId : null))).toEqual([b.id]);
+  });
+
+  it("undo restores a removed block and a removed calendar", () => {
+    store().addTask(task);
+    store().placeTask(today().tasks[0].id, 600);
+    store().removeBlock(today().blocks[0].id);
+    store().undoDelete();
+    expect(today().blocks).toHaveLength(1);
+
+    store().addCalendar("Home", "https://p52-caldav.icloud.com/published/2/abc");
+    store().removeCalendar(store().calendars[0].id);
+    expect(store().calendars).toHaveLength(0);
+    store().undoDelete();
+    expect(store().calendars.map((c) => c.name)).toEqual(["Home"]);
+  });
+
+  it("an undo from yesterday does nothing after midnight", () => {
+    store().addTask(task);
+    store().deleteTask(today().tasks[0].id);
+    store().syncToday(new Date(2026, 9, 1, 0, 5));
+    store().undoDelete();
+    expect(store().days["2026-09-30"].tasks).toHaveLength(0);
   });
 
   it("keeps every day", () => {
