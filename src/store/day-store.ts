@@ -13,12 +13,16 @@ export type Day = {
 
 export type Settings = DayBounds;
 
+/** "system" follows the OS appearance. */
+export type Theme = "system" | "light" | "dark";
+
 export type NewTask = Pick<Task, "name" | "minutes" | "kind" | "fixed" | "isBreak">;
 
 type State = {
   today: string;
   days: Record<string, Day>;
   settings: Settings;
+  theme: Theme;
 };
 
 type Actions = {
@@ -34,6 +38,7 @@ type Actions = {
   resizeBlock: (id: string, minutes: number) => Validation;
   removeBlock: (id: string) => void;
   setSettings: (settings: Settings) => Validation;
+  setTheme: (theme: Theme) => void;
   carryOver: (taskIds: string[]) => void;
 };
 
@@ -61,7 +66,7 @@ const pruneDays = (days: Record<string, Day>, today: string) => {
 };
 
 /** Most recent earlier day with unfinished tasks, for the carry-over prompt. */
-export function previousUnfinished(state: State): { date: string; tasks: Task[] } | null {
+export function previousUnfinished(state: Pick<State, "days" | "today">): { date: string; tasks: Task[] } | null {
   const date = Object.keys(state.days)
     .filter((k) => k < state.today)
     .sort()
@@ -98,6 +103,7 @@ export const useDayStore = create<State & Actions>()(
         today: localDateKey(new Date()),
         days: {},
         settings: DEFAULT_SETTINGS,
+        theme: "system",
 
         syncToday: (now = new Date()) => {
           const today = localDateKey(now);
@@ -200,6 +206,8 @@ export const useDayStore = create<State & Actions>()(
           return OK;
         },
 
+        setTheme: (theme) => set({ theme }),
+
         carryOver: (taskIds) => {
           const previous = previousUnfinished(get());
           const carried = (previous?.tasks ?? [])
@@ -213,7 +221,8 @@ export const useDayStore = create<State & Actions>()(
       name: "timebox",
       version: 1,
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ days, settings }) => ({ days, settings }),
+      // Top-level fields merge over defaults, so older saves without `theme` load fine.
+      partialize: ({ days, settings, theme }) => ({ days, settings, theme }),
     },
   ),
 );

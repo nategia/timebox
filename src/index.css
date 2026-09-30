@@ -14,3 +14,7 @@
     font-feature-settings: "tnum";
   }
 }
+
+.theme-switching * {
+  transition: none !important;
+}

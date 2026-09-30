@@ -8,12 +8,11 @@ import { Checkbox } from "./ui/checkbox";
 export function CarryOver() {
   const days = useDayStore((s) => s.days);
   const todayKey = useDayStore((s) => s.today);
-  const settings = useDayStore((s) => s.settings);
   const carryOver = useDayStore((s) => s.carryOver);
   const { carryOverHandled } = useToday();
   const previous = useMemo(
-    () => previousUnfinished({ days, today: todayKey, settings }),
-    [days, todayKey, settings],
+    () => previousUnfinished({ days, today: todayKey }),
+    [days, todayKey],
   );
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
 

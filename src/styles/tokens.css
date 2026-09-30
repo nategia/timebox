@@ -1,11 +1,49 @@
 /*
  * The only place for colours, fonts, spacing and radii.
- * Vercel-style: black, near-white text, hairline grey borders, white primary.
+ * Vercel-style day (default) and night (`.dark` on <html>, set by useTheme).
  * Semantic names follow shadcn (background, primary, muted…) so its components
  * pick up this palette. Colours are RGB channels so Tailwind can apply opacity.
- * Dark only, on purpose.
  */
 :root {
+  color-scheme: light;
+
+  --background: 255 255 255;
+  --foreground: 23 23 23;
+  --card: 250 250 250;
+  --card-foreground: 23 23 23;
+  --popover: 255 255 255;
+  --popover-foreground: 23 23 23;
+  --primary: 23 23 23;
+  --primary-foreground: 255 255 255;
+  --secondary: 242 242 242;
+  --secondary-foreground: 23 23 23;
+  --muted: 242 242 242;
+  --muted-foreground: 102 102 102;
+  --accent: 235 235 235;
+  --accent-foreground: 23 23 23;
+  --destructive: 218 47 53;
+  --destructive-foreground: 255 255 255;
+  --border: 234 234 234;
+  --input: 222 222 222;
+  --ring: 0 114 245;
+
+  /* Block kinds */
+  --kind-deep: 0 114 245;
+  --kind-body: 40 160 70;
+  --kind-light: 220 140 0;
+  --kind-fixed: 120 120 120;
+
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --radius: 8px;
+
+  --space-gutter: 16px;
+
+  /* Timeline: height of one 5-minute slot (1 hour = 12 slots) */
+  --slot-height: 6px;
+}
+
+.dark {
   color-scheme: dark;
 
   --background: 0 0 0;
@@ -28,18 +66,8 @@
   --input: 46 46 46;
   --ring: 82 168 255;
 
-  /* Block kinds */
   --kind-deep: 82 168 255;
   --kind-body: 98 199 124;
   --kind-light: 255 178 36;
   --kind-fixed: 143 143 143;
-
-  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
-
-  --radius: 8px;
-
-  --space-gutter: 16px;
-
-  /* Timeline: height of one 5-minute slot (1 hour = 12 slots) */
-  --slot-height: 6px;
 }

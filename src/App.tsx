@@ -3,7 +3,9 @@ import { CarryOver } from "./components/CarryOver";
 import { DaySettings } from "./components/DaySettings";
 import { TaskList } from "./components/TaskList";
 import { Timeline } from "./components/Timeline";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { useDayRollover } from "./hooks/use-day-rollover";
+import { useTheme } from "./hooks/use-theme";
 import { useFlash } from "./hooks/use-flash";
 import { formatDateKey } from "./domain/time";
 import { useDayStore } from "./store/day-store";
@@ -13,6 +15,7 @@ export function App() {
   const { message, flash } = useFlash();
   const today = useDayStore((s) => s.today);
   useDayRollover();
+  useTheme();
 
   useEffect(() => {
     if (!pickedTaskId) return;
@@ -31,6 +34,7 @@ export function App() {
           <div className="ml-auto flex items-center gap-3">
             {message && <p role="status" className="text-destructive">{message}</p>}
             <DaySettings onRejected={flash} />
+            <ThemeToggle />
           </div>
         </div>
       </header>
