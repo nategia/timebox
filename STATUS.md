@@ -12,7 +12,7 @@ Timebox: free, shareable web app for timeboxing your day. Data stays in each vis
 - Usage test (unchanged): used on 6 of 10 workdays, 5+ re-plans, 70%+ re-plans accepted.
 
 ## Now
-- Plan 002 (history, auto carry-over, backup): [tasks](docs/plans/002-history/tasks.md) (5 tasks, one PR). T001–T004 done; current: T005.
+- Plan 002 (history, auto carry-over, backup): [tasks](docs/plans/002-history/tasks.md) (5 tasks + T002a, one PR). All done on `feat/002-history`; next: pre-merge flow, then plan 003.
 
 ## Roadmap
 1. Plan 002: past days, auto carry-over, backup.

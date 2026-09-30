@@ -13,7 +13,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 - [x] T002a: Priority ranks + drag to reorder (added 2026-09-30, your request)
 - [x] T003: Browse past days (read-only)
 - [x] T004: Backup export/import
-- [ ] T005: Persistent storage + Safari notice
+- [x] T005: Persistent storage + Safari notice
 
 ---
 
@@ -66,10 +66,10 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [x] Tests: round-trip, wrong app, malformed JSON, v1 file
 
 ### T005: Persistent storage + Safari notice
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T004
 - **Acceptance Criteria:**
-  - [ ] `navigator.storage.persist()` requested once on load where supported
-  - [ ] Safari not installed as a web app: one-time notice (add to Dock/Home Screen, export a backup), dismiss saved
-  - [ ] Not shown on Chrome/Edge/Firefox or when running installed
-  - [ ] STATUS.md and CLAUDE.md updated (days kept forever, backup)
+  - [x] `navigator.storage.persist()` requested once on load where supported
+  - [x] Safari not installed as a web app: one-time notice (add to Dock/Home Screen, export a backup), dismiss saved
+  - [x] Not shown on Chrome/Edge/Firefox or when running installed
+  - [x] STATUS.md and CLAUDE.md updated (days kept forever, backup)

@@ -20,6 +20,8 @@ type State = {
   theme: Theme;
   /** Past day being browsed, or null for today. Not persisted: a reload always opens today. */
   viewDate: string | null;
+  /** The one-time Safari "add to Dock, export a backup" notice was dismissed. */
+  safariNoticeDismissed: boolean;
 };
 
 type Actions = {
@@ -39,6 +41,7 @@ type Actions = {
   setViewDate: (key: string | null) => void;
   /** Replaces every day, the settings and the theme with a backup. */
   importAll: (data: Persisted) => void;
+  dismissSafariNotice: () => void;
   /** Removes today's carried tasks and restores them as unfinished on the source day. */
   undoCarryOver: () => void;
   /** Hides the carry-over notice but keeps the tasks. */
@@ -120,6 +123,7 @@ export const useDayStore = create<State & Actions>()(
         settings: DEFAULT_SETTINGS,
         theme: "system",
         viewDate: null,
+        safariNoticeDismissed: false,
 
         syncToday: (now = new Date()) => {
           const today = localDateKey(now);
@@ -230,6 +234,8 @@ export const useDayStore = create<State & Actions>()(
           get().syncToday();
         },
 
+        dismissSafariNotice: () => set({ safariNoticeDismissed: true }),
+
         setViewDate: (key) => set((s) => ({ viewDate: key === s.today ? null : key })),
 
         undoCarryOver: () => set((s) => ({ days: undoCarryOver(s.days, s.today) })),
@@ -243,7 +249,7 @@ export const useDayStore = create<State & Actions>()(
       migrate,
       storage: createJSONStorage(guardedStorage),
       // Top-level fields merge over defaults, so older saves without `theme` load fine.
-      partialize: ({ days, settings, theme }) => ({ days, settings, theme }),
+      partialize: ({ days, settings, theme, safariNoticeDismissed }) => ({ days, settings, theme, safariNoticeDismissed }),
     },
   ),
 );
