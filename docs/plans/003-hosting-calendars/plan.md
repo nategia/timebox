@@ -3,7 +3,7 @@
 **Spec:** [docs/specs/001-timebox/spec.md](../../specs/001-timebox/spec.md) (v2: FR-005, FR-012/a/b/c/d, FR-021, FR-022, FR-025, FR-026 + calendar edge cases)
 **Spec change:** none this round ([diff.txt](./diff.txt))
 **Idea vet:** [addendum 2026-09-30](../../idea-vet.md) (spikes, SSRF, privacy)
-**Status:** Drafting
+**Status:** Approved (2026-09-30)
 
 ## Overview
 Put Timebox on a public Vercel URL (Hobby, non-commercial) and let each visitor paste Google/iCloud calendar share links. One small serverless function fetches a link, expands today's events (recurring, exceptions, time zones, all-day) and returns them; nothing is stored or logged server-side. Events show as fixed, non-draggable blocks and count as obstacles when placing tasks. AI planning (FR-027/028) is **not** here: it moves to plan 004 with "Plan it for me". Starts with a spike on your real calendar links; if recurring events don't expand correctly, we stop and rethink.
@@ -73,7 +73,7 @@ Settings → add link → store `calendars` (validated client-side too) → `use
 4. Settings UI + `use-calendars` + timeline rendering, all-day notes, clash marker.
 5. `vercel.json` (headers, rewrite), README deploy notes, first deploy with you.
 
-## Open Questions
-- [ ] Spike needs your real share links (pasted into the local app, never committed). OK to use them during the build?
-- [ ] Deploy: you connect the repo in the Vercel dashboard (Vercel tools here need you to authorise them first). Fine?
-- [ ] Include calendar links in backups? Plan says **yes** (your file, your links).
+## Decisions (resolved 2026-09-30)
+- Spike uses Nathaniel's real share links, pasted locally (gitignored `.local/calendars.json` for the spike script), never committed or logged.
+- Deploy: Nathaniel imports the repo in the Vercel dashboard; merges to `main` deploy, PRs get previews.
+- Backups include calendar links (the import confirm and export note say the file holds private links).

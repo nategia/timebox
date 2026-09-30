@@ -5,14 +5,14 @@ Timebox: free, shareable web app for timeboxing your day. Data stays in each vis
 ## Specs
 | # | Spec | Status | Plans |
 |---|---|---|---|
-| 001 | [Timebox](docs/specs/001-timebox/spec.md) | Approved v2 (2026-09-30) | [001 v1](docs/plans/001-timebox-v1/plan.md) (Approved; phase 1 merged, PR #3) · [002 history](docs/plans/002-history/plan.md) (Done, PR #4) · [003 hosting + calendars](docs/plans/003-hosting-calendars/plan.md) (Drafting) |
+| 001 | [Timebox](docs/specs/001-timebox/spec.md) | Approved v2 (2026-09-30) | [001 v1](docs/plans/001-timebox-v1/plan.md) (Approved; phase 1 merged, PR #3) · [002 history](docs/plans/002-history/plan.md) (Done, PR #4) · [003 hosting + calendars](docs/plans/003-hosting-calendars/plan.md) (Approved) |
 
 ## Context
 - Idea vet 2026-09-30: Park as product; personal build approved. Addendum same day: **Go** as a free, non-commercial hosted web app (Vercel Hobby is non-commercial only). See `docs/idea-vet.md`.
 - Usage test (unchanged): used on 6 of 10 workdays, 5+ re-plans, 70%+ re-plans accepted.
 
 ## Now
-- Plan 003 (hosting + calendar share links): drafting, awaiting approval. Daily brief still queued.
+- Plan 003: [tasks](docs/plans/003-hosting-calendars/tasks.md) (5 tasks, one PR). Current: T001 spike. Daily brief still queued.
 
 ## Roadmap
 1. ~~Plan 002: past days, auto carry-over, backup.~~ Done (PR #4).
