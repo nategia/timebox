@@ -11,5 +11,5 @@ Personal AI timeboxer, browser-based, local, open-source-ready. Fresh start (202
 - Idea vet 2026-09-30: Park as product; personal-only build. See `docs/idea-vet.md`.
 - Usage test: used on 6 of 10 workdays, 5+ re-plans, 70%+ re-plans accepted.
 
-## Next
-- `/tasks-create 001-timebox-v1`, then phase 1 (clean slate + manual day)
+## Now
+- 001 Timebox: [tasks](docs/plans/001-timebox-v1/tasks.md) (14 tasks, 3 phases). Current: T001 (phase 1, clean slate).
