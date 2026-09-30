@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 *.tsbuildinfo
+
+# Local-only secrets (calendar links for the spike)
+.local/
