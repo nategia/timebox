@@ -1,27 +1,39 @@
 /*
  * The only place for colours, fonts, spacing and radii.
- * Colours are RGB channels so Tailwind can apply opacity (`bg-deep/20`).
+ * Semantic names follow shadcn (background, primary, muted…) so its components
+ * pick up this palette. Colours are RGB channels so Tailwind can apply opacity.
  */
 :root {
-  --color-bg: 245 244 238;
-  --color-surface: 255 255 255;
-  --color-ink: 40 38 34;
-  --color-muted: 120 115 105;
-  --color-line: 226 223 213;
-  --color-accent: 201 100 66;
-  --color-danger: 180 60 50;
+  --background: 245 244 238;
+  --foreground: 40 38 34;
+  --card: 255 255 255;
+  --card-foreground: 40 38 34;
+  --popover: 255 255 255;
+  --popover-foreground: 40 38 34;
+  --primary: 201 100 66;
+  --primary-foreground: 255 255 255;
+  --secondary: 236 233 224;
+  --secondary-foreground: 40 38 34;
+  --muted: 236 233 224;
+  --muted-foreground: 120 115 105;
+  --accent: 236 233 224;
+  --accent-foreground: 40 38 34;
+  --destructive: 180 60 50;
+  --destructive-foreground: 255 255 255;
+  --border: 226 223 213;
+  --input: 226 223 213;
+  --ring: 201 100 66;
 
   /* Block kinds */
-  --color-deep: 201 100 66;
-  --color-body: 110 145 105;
-  --color-light: 150 140 190;
-  --color-fixed: 120 125 135;
+  --kind-deep: 201 100 66;
+  --kind-body: 110 145 105;
+  --kind-light: 150 140 190;
+  --kind-fixed: 120 125 135;
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-serif: ui-serif, Georgia, "Times New Roman", serif;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius: 8px;
 
   --space-gutter: 16px;
 
@@ -31,17 +43,29 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: 30 29 27;
-    --color-surface: 40 39 36;
-    --color-ink: 236 233 225;
-    --color-muted: 160 155 145;
-    --color-line: 62 60 56;
-    --color-accent: 218 125 92;
-    --color-danger: 230 110 95;
+    --background: 30 29 27;
+    --foreground: 236 233 225;
+    --card: 40 39 36;
+    --card-foreground: 236 233 225;
+    --popover: 40 39 36;
+    --popover-foreground: 236 233 225;
+    --primary: 218 125 92;
+    --primary-foreground: 30 29 27;
+    --secondary: 52 50 46;
+    --secondary-foreground: 236 233 225;
+    --muted: 52 50 46;
+    --muted-foreground: 160 155 145;
+    --accent: 52 50 46;
+    --accent-foreground: 236 233 225;
+    --destructive: 230 110 95;
+    --destructive-foreground: 30 29 27;
+    --border: 62 60 56;
+    --input: 62 60 56;
+    --ring: 218 125 92;
 
-    --color-deep: 218 125 92;
-    --color-body: 140 175 130;
-    --color-light: 170 160 210;
-    --color-fixed: 140 145 155;
+    --kind-deep: 218 125 92;
+    --kind-body: 140 175 130;
+    --kind-light: 170 160 210;
+    --kind-fixed: 140 145 155;
   }
 }

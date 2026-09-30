@@ -87,7 +87,7 @@ export function BlockItem({
       aria-label={`${label}, ${formatTime(shown.start)} to ${formatTime(shown.start + shown.minutes)}`}
       title={label}
       className={cn(
-        "group absolute left-12 right-1 overflow-hidden rounded-sm border-l-4 px-2 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent",
+        "group absolute left-12 right-1 overflow-hidden rounded-sm border-l-4 px-2 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
         KIND_BLOCK[kind],
         draggable ? "cursor-grab touch-none" : "cursor-default",
         preview && "z-10 cursor-grabbing opacity-80 shadow",
@@ -104,14 +104,14 @@ export function BlockItem({
     >
       <div className={cn("flex gap-2", compact ? "items-center leading-none" : "pt-0.5")}>
         <span className="truncate font-medium">{label}</span>
-        <span className="shrink-0 text-muted">
+        <span className="shrink-0 text-muted-foreground">
           {formatTime(shown.start)}–{formatTime(shown.start + shown.minutes)}
           {!compact && ` · ${formatDuration(shown.minutes)}`}
         </span>
         <button
           type="button"
           aria-label={`Remove ${label} from timeline`}
-          className="ml-auto shrink-0 text-muted opacity-0 hover:text-ink focus:opacity-100 group-hover:opacity-100"
+          className="ml-auto shrink-0 text-muted-foreground opacity-0 hover:text-foreground focus:opacity-100 group-hover:opacity-100"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={onRemove}
         >

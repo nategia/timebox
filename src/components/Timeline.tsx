@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 import { BlockItem } from "./BlockItem";
 import { KIND_BG } from "./kind";
 import { MeetingForm } from "./MeetingForm";
-import { Button, Input } from "./ui";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 export const TASK_DRAG_TYPE = "application/x-timebox-task";
 
@@ -64,7 +65,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
 
   return (
     <section className="flex flex-col gap-3" aria-label="Timeline">
-      <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         {KINDS.map((k) => (
           <span key={k} className="flex items-center gap-1">
             <span className={cn("h-2 w-2 rounded-full", KIND_BG[k])} />
@@ -75,7 +76,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
           <span className={cn("h-2 w-2 rounded-full", KIND_BG.fixed)} />
           Meeting
         </span>
-        <span className="ml-auto text-ink">Planned {formatDuration(planned)}</span>
+        <span className="ml-auto text-foreground">Planned {formatDuration(planned)}</span>
       </div>
 
       {/* Pick bar swaps in for the meeting row so the grid never shifts under the cursor. */}
@@ -87,7 +88,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
         )}
       </div>
 
-      <p role="status" aria-live="polite" className="min-h-5 text-sm text-danger">
+      <p role="status" aria-live="polite" className="min-h-5 text-sm text-destructive">
         {message}
       </p>
 
@@ -102,10 +103,10 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
         {hours.map((m) => (
           <div
             key={m}
-            className="pointer-events-none absolute inset-x-0 border-t border-line/70"
+            className="pointer-events-none absolute inset-x-0 border-t border-border/70"
             style={{ top: `calc(var(--slot-height) * ${(m - dayStart) / SLOT_MINUTES})` }}
           >
-            <span className="absolute -top-2 left-0 bg-bg pr-1 text-xs text-muted">{formatTime(m)}</span>
+            <span className="absolute -top-2 left-0 bg-background pr-1 text-xs text-muted-foreground">{formatTime(m)}</span>
           </div>
         ))}
         {blocks.map((block) => (
@@ -133,7 +134,7 @@ function PlacePicked({ task, dayStart, onPlace }: { task: Task; dayStart: number
   const start = parseTime(time);
   return (
     <form
-      className="flex items-center gap-2 rounded-sm border border-accent bg-accent/10 px-2 py-1.5 text-sm"
+      className="flex items-center gap-2 rounded-sm border border-primary bg-primary/10 px-2 py-1.5 text-sm"
       onSubmit={(e) => {
         e.preventDefault();
         if (start !== null) onPlace(start);
@@ -142,8 +143,8 @@ function PlacePicked({ task, dayStart, onPlace }: { task: Task; dayStart: number
       <span className="min-w-0 flex-1 truncate">
         Click a time to place <strong>{task.name}</strong>, or
       </span>
-      <Input aria-label="Start time" className="w-20 py-0.5" value={time} onChange={(e) => setTime(e.target.value)} />
-      <Button type="submit" variant="primary" disabled={start === null}>
+      <Input aria-label="Start time" className="w-20 h-8" value={time} onChange={(e) => setTime(e.target.value)} />
+      <Button type="submit" size="sm" disabled={start === null}>
         Place
       </Button>
     </form>

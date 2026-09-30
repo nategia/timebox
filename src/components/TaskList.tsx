@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { KIND_BG } from "./kind";
 import { TaskForm } from "./TaskForm";
 import { TASK_DRAG_TYPE } from "./Timeline";
-import { Button } from "./ui";
+import { Button } from "./ui/button";
 
 type Props = {
   pickedTaskId: string | null;
@@ -30,7 +30,7 @@ export function TaskList({ pickedTaskId, onPick }: Props) {
         onPasteMany={(names, settings) => names.forEach((name) => addTask({ ...settings, name }))}
       />
       {tasks.length === 0 ? (
-        <p className="px-1 text-sm text-muted">
+        <p className="px-1 text-sm text-muted-foreground">
           Nothing here yet. Add what's on your plate today, or paste a list.
         </p>
       ) : (
@@ -82,8 +82,8 @@ function TaskRow({ task, index, count, start, picked, onPick, onEdit }: RowProps
         e.dataTransfer.effectAllowed = "move";
       }}
       className={cn(
-        "group flex items-center gap-2 rounded-sm border bg-surface px-2 py-1.5 text-sm",
-        picked && "border-accent ring-1 ring-accent",
+        "group flex items-center gap-2 rounded-sm border bg-card px-2 py-1.5 text-sm",
+        picked && "border-primary ring-1 ring-ring",
         task.done && "opacity-50",
       )}
     >
@@ -105,23 +105,23 @@ function TaskRow({ task, index, count, start, picked, onPick, onEdit }: RowProps
       >
         {task.name}
       </button>
-      <span className="shrink-0 text-xs text-muted">
+      <span className="shrink-0 text-xs text-muted-foreground">
         {start !== undefined && `${formatTime(start)} · `}
         {formatDuration(task.minutes)}
         {task.fixed && " · fixed"}
         {task.isBreak && " · break"}
       </span>
       <div className="flex shrink-0 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-        <Button aria-label="Higher priority" disabled={index === 0} onClick={() => moveTask(task.id, index - 1)}>
+        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Higher priority" disabled={index === 0} onClick={() => moveTask(task.id, index - 1)}>
           <ArrowUp className="h-3.5 w-3.5" />
         </Button>
-        <Button aria-label="Lower priority" disabled={index === count - 1} onClick={() => moveTask(task.id, index + 1)}>
+        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Lower priority" disabled={index === count - 1} onClick={() => moveTask(task.id, index + 1)}>
           <ArrowDown className="h-3.5 w-3.5" />
         </Button>
-        <Button aria-label="Edit" onClick={onEdit}>
+        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Edit" onClick={onEdit}>
           <Pencil className="h-3.5 w-3.5" />
         </Button>
-        <Button aria-label="Delete" onClick={() => deleteTask(task.id)}>
+        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Delete" onClick={() => deleteTask(task.id)}>
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>

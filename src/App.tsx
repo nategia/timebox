@@ -23,7 +23,7 @@ export function App() {
       <header className="flex items-center gap-3 md:col-span-2">
         <h1 className="font-serif text-2xl">Today</h1>
         <DaySettings onRejected={flash} />
-        {message && <p role="status" className="text-sm text-danger">{message}</p>}
+        {message && <p role="status" className="text-sm text-destructive">{message}</p>}
       </header>
       <CarryOver />
       <TaskList pickedTaskId={pickedTaskId} onPick={setPickedTaskId} />

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { parseTime } from "@/domain/time";
 import { useDayStore } from "@/store/day-store";
-import { Button, Input } from "./ui";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 /** Meetings are entered by hand until Google Calendar sync (plan 002). */
 export function MeetingForm({ onRejected }: { onRejected: (reason: string) => void }) {
@@ -13,7 +14,7 @@ export function MeetingForm({ onRejected }: { onRejected: (reason: string) => vo
 
   if (!open) {
     return (
-      <Button className="self-start" onClick={() => setOpen(true)}>
+      <Button type="button" variant="ghost" size="sm" className="self-start" onClick={() => setOpen(true)}>
         + Add meeting
       </Button>
     );
@@ -21,7 +22,7 @@ export function MeetingForm({ onRejected }: { onRejected: (reason: string) => vo
 
   return (
     <form
-      className="flex flex-wrap items-center gap-2 rounded-sm border bg-surface p-2 text-sm"
+      className="flex flex-wrap items-center gap-2 rounded-sm border bg-card p-2 text-sm"
       onSubmit={(e) => {
         e.preventDefault();
         const start = parseTime(time);
@@ -43,8 +44,8 @@ export function MeetingForm({ onRejected }: { onRejected: (reason: string) => vo
         value={minutes || ""}
         onChange={(e) => setMinutes(e.target.valueAsNumber || 0)}
       />
-      <Button onClick={() => setOpen(false)}>Cancel</Button>
-      <Button type="submit" variant="primary">
+      <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
+      <Button type="submit" size="sm">
         Add
       </Button>
     </form>

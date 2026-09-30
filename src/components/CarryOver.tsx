@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { formatDuration } from "@/domain/time";
 import { previousUnfinished, useDayStore, useToday } from "@/store/day-store";
-import { Button } from "./ui";
+import { Button } from "./ui/button";
+import { Checkbox } from "./ui/checkbox";
 
 /** Morning prompt: bring yesterday's unfinished tasks into today, or start fresh. */
 export function CarryOver() {
@@ -26,7 +27,7 @@ export function CarryOver() {
     });
 
   return (
-    <section className="rounded-md border border-accent bg-accent/10 p-3 text-sm md:col-span-2" aria-label="Carry over">
+    <section className="rounded-md border border-primary bg-primary/10 p-3 text-sm md:col-span-2" aria-label="Carry over">
       <p className="mb-2">
         {previous.tasks.length} unfinished from {previous.date}. Bring them into today?
       </p>
@@ -34,21 +35,22 @@ export function CarryOver() {
         {previous.tasks.map((t) => (
           <li key={t.id}>
             <label className="flex items-center gap-2">
-              <input type="checkbox" checked={!skipped.has(t.id)} onChange={() => toggle(t.id)} />
+              <Checkbox checked={!skipped.has(t.id)} onCheckedChange={() => toggle(t.id)} />
               <span className="flex-1 truncate">{t.name}</span>
-              <span className="text-xs text-muted">{formatDuration(t.minutes)}</span>
+              <span className="text-xs text-muted-foreground">{formatDuration(t.minutes)}</span>
             </label>
           </li>
         ))}
       </ul>
       <div className="flex gap-2">
         <Button
-          variant="primary"
+          type="button"
+          size="sm"
           onClick={() => carryOver(previous.tasks.filter((t) => !skipped.has(t.id)).map((t) => t.id))}
         >
           Carry over
         </Button>
-        <Button onClick={() => carryOver([])}>Start fresh</Button>
+        <Button type="button" variant="ghost" size="sm" onClick={() => carryOver([])}>Start fresh</Button>
       </div>
     </section>
   );

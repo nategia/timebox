@@ -4,7 +4,9 @@ import { KIND_LABEL, KINDS, type Kind } from "@/domain/types";
 import type { NewTask } from "@/store/day-store";
 import { cn } from "@/lib/utils";
 import { KIND_BG } from "./kind";
-import { Button, Input } from "./ui";
+import { Button } from "./ui/button";
+import { Checkbox } from "./ui/checkbox";
+import { Input } from "./ui/input";
 
 type Props = {
   initial?: NewTask;
@@ -14,6 +16,9 @@ type Props = {
   onPasteMany?: (names: string[], settings: Omit<NewTask, "name">) => void;
   onCancel?: () => void;
 };
+
+/** Selected preset chip. */
+const chip = (active: boolean) => cn("h-7 px-2 font-normal", active && "border-primary bg-primary/10");
 
 const DEFAULT: NewTask = { name: "", minutes: 30, kind: "deep", fixed: false, isBreak: false };
 
@@ -38,7 +43,7 @@ export function TaskForm({ initial = DEFAULT, submitLabel, onSubmit, onPasteMany
   const settings = { minutes: task.minutes, kind: task.kind, fixed: task.fixed, isBreak: task.isBreak };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-2 rounded-md border bg-surface p-3">
+    <form onSubmit={submit} className="flex flex-col gap-2 rounded-md border bg-card p-3">
       <Input
         autoFocus={!!onCancel}
         placeholder="Task name, or paste a list"
@@ -58,7 +63,7 @@ export function TaskForm({ initial = DEFAULT, submitLabel, onSubmit, onPasteMany
       />
       <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Length">
         {DURATION_PRESETS.map((m) => (
-          <Button key={m} variant="chip" active={task.minutes === m} onClick={() => set({ minutes: m })}>
+          <Button key={m} type="button" variant="outline" size="sm" className={chip(task.minutes === m)} onClick={() => set({ minutes: m })}>
             {m}m
           </Button>
         ))}
@@ -67,46 +72,44 @@ export function TaskForm({ initial = DEFAULT, submitLabel, onSubmit, onPasteMany
           min={5}
           step={5}
           aria-label="Custom length in minutes"
-          className="w-16 py-0.5"
+          className="w-16 h-8"
           value={task.minutes || ""}
           onChange={(e) => set({ minutes: e.target.valueAsNumber || 0 })}
         />
       </div>
       <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Kind">
         {KINDS.map((k: Kind) => (
-          <Button key={k} variant="chip" active={task.kind === k} onClick={() => set({ kind: k })}>
+          <Button key={k} type="button" variant="outline" size="sm" className={chip(task.kind === k)} onClick={() => set({ kind: k })}>
             <span className={cn("mr-1 inline-block h-2 w-2 rounded-full", KIND_BG[k])} />
             {KIND_LABEL[k]}
           </Button>
         ))}
       </div>
-      <div className="flex items-center gap-3 text-sm text-muted">
+      <div className="flex items-center gap-3 text-sm text-muted-foreground">
         <label className="flex items-center gap-1">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={task.fixed}
-            onChange={(e) => set({ fixed: e.target.checked, isBreak: e.target.checked ? false : task.isBreak })}
+            onCheckedChange={(v) => set({ fixed: v === true, isBreak: v === true ? false : task.isBreak })}
           />
           Fixed
         </label>
         <label className="flex items-center gap-1">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={task.isBreak}
-            onChange={(e) =>
-              set(e.target.checked ? { isBreak: true, fixed: false, kind: "light" } : { isBreak: false })
+            onCheckedChange={(v) =>
+              set(v === true ? { isBreak: true, fixed: false, kind: "light" } : { isBreak: false })
             }
           />
           Break
         </label>
         <div className="ml-auto flex gap-1">
-          {onCancel && <Button onClick={onCancel}>Cancel</Button>}
-          <Button type="submit" variant="primary">
+          {onCancel && <Button type="button" variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>}
+          <Button type="submit" size="sm">
             {submitLabel}
           </Button>
         </div>
       </div>
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </form>
   );
 }

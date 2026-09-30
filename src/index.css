@@ -6,9 +6,9 @@
 
 @layer base {
   * {
-    @apply border-line;
+    @apply border-border;
   }
   body {
-    @apply bg-bg font-sans text-ink antialiased;
+    @apply bg-background font-sans text-foreground antialiased;
   }
 }

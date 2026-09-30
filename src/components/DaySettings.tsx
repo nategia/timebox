@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { formatTime, parseTime } from "@/domain/time";
 import { useDayStore } from "@/store/day-store";
-import { Button, Input } from "./ui";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 export function DaySettings({ onRejected }: { onRejected: (reason: string) => void }) {
   const settings = useDayStore((s) => s.settings);
@@ -13,6 +14,9 @@ export function DaySettings({ onRejected }: { onRejected: (reason: string) => vo
   if (!editing) {
     return (
       <Button
+        type="button"
+        variant="ghost"
+        size="sm"
         aria-label="Change day start and end"
         onClick={() => {
           setStart(formatTime(settings.start));
@@ -38,13 +42,13 @@ export function DaySettings({ onRejected }: { onRejected: (reason: string) => vo
         setEditing(false);
       }}
     >
-      <Input aria-label="Day start" className="w-16 py-0.5" value={start} onChange={(e) => setStart(e.target.value)} />
+      <Input aria-label="Day start" className="w-16 h-8" value={start} onChange={(e) => setStart(e.target.value)} />
       –
-      <Input aria-label="Day end" className="w-16 py-0.5" value={end} onChange={(e) => setEnd(e.target.value)} />
-      <Button type="submit" variant="primary">
+      <Input aria-label="Day end" className="w-16 h-8" value={end} onChange={(e) => setEnd(e.target.value)} />
+      <Button type="submit" size="sm">
         Save
       </Button>
-      <Button onClick={() => setEditing(false)}>Cancel</Button>
+      <Button type="button" variant="ghost" size="sm" onClick={() => setEditing(false)}>Cancel</Button>
     </form>
   );
 }
