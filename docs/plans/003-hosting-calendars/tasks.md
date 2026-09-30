@@ -12,8 +12,8 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 - [x] T002: `/api/calendar` function, guards, dev middleware
 - [x] T003: Store v3 (`calendars`, `externalBlocks`) + backups
 - [x] T003a: Automatic safety copy + restore, undo after delete (added 2026-09-30 after lost tasks)
-- [ ] T004: Calendar settings, live events on the timeline
-- [ ] T005: Vercel config, headers, README, first deploy
+- [ ] T004: Calendar settings, live events on the timeline → **moved to the next PR** (ship live first, 2026-09-30)
+- [x] T005: Vercel config, headers, README, first deploy (deploy pending your Vercel import)
 
 ---
 
@@ -69,10 +69,11 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [ ] Verified with your real links in the local app, **including a repeating event, a moved/cancelled instance and an all-day event** (carried over from T001)
 
 ### T005: Vercel config, headers, README, first deploy
-- **Status:** `[ ]`
-- **Dependencies:** T004
+- **Status:** `[x]` (moved ahead of T004 to go live sooner)
+- **Dependencies:** T003
 - **Acceptance Criteria:**
-  - [ ] `vercel.json`: SPA rewrite, CSP (theme script hash), `no-referrer`, `nosniff`, function `maxDuration`
-  - [ ] README: what Timebox is, run locally, deploy to Vercel, optional WAF rate-limit rule, privacy (data in your browser; links only pass through the function)
-  - [ ] You import the repo on Vercel; preview deploy works: app loads, CSP has no console errors, calendar fetch works on the deployed URL
-  - [ ] STATUS.md and CLAUDE.md updated
+  - [x] `vercel.json`: CSP (theme script hash, guarded by a test), `no-referrer`, `nosniff`, Permissions-Policy, function `maxDuration` (no rewrite needed: single page, no routes)
+  - [x] README: what Timebox is, run locally, deploy to Vercel, optional WAF rate-limit rule, privacy (data in your browser; links only pass through the function)
+  - [x] Production build under the same headers locally (`npm run preview`): no CSP errors, theme script and Geist load
+  - [ ] You import the repo on Vercel; deployed URL loads without CSP errors; `/api/calendar` answers
+  - [x] STATUS.md and CLAUDE.md updated

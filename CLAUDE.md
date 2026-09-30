@@ -10,3 +10,6 @@ Personal AI timeboxing app. Vite + React 18 + TypeScript + Tailwind v3, shadcn/u
 - `src/store/day-store.ts`: Zustand + persist. All days live in one localStorage key `timebox`, kept forever (persist `version` 2 + `migrate`; bump both when the saved shape changes). Users back up via Export/Import (`domain/backup.ts`, same migration).
 - `src/components/`, `src/hooks/` (side effects live in hooks). `src/components/ui/` = shadcn-generated, add with `npx shadcn@2.3.0 add <name>`; always pass `type="button"` to non-submit Buttons.
 - Styling: `src/styles/tokens.css` is the single source of colours, fonts, spacing, using shadcn's semantic names (`primary`, `muted-foreground`…); `tailwind.config.js` maps to it. No hex values in components.
+- Server: `api/*.ts` are Vercel functions (thin wrappers); logic in `server/`, served in dev by a Vite middleware (`vite.config.ts`). Relative imports in `api/` and `server/` use `.js` extensions (Node ESM on Vercel).
+- Deploy: Vercel Hobby (non-commercial). Headers + CSP in `vercel.json`; changing index.html's inline script means updating its sha256 there (`server/csp.test.ts` fails otherwise). `npm run preview` serves the same headers.
+

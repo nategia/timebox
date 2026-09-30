@@ -1,5 +1,5 @@
 import ICAL from "ical.js";
-import { checkLinkShape, isAllowedHost, normalizeLink } from "../src/domain/calendar-link";
+import { checkLinkShape, isAllowedHost, normalizeLink } from "../src/domain/calendar-link.js";
 
 export { checkLinkShape };
 

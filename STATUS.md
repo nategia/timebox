@@ -12,7 +12,8 @@ Timebox: free, shareable web app for timeboxing your day. Data stays in each vis
 - Usage test (unchanged): used on 6 of 10 workdays, 5+ re-plans, 70%+ re-plans accepted.
 
 ## Now
-- Plan 003: [tasks](docs/plans/003-hosting-calendars/tasks.md) (5 tasks, one PR). Current: T001 spike. Daily brief still queued.
+- Plan 003 part 1 (go live): calendar function, store v3, safety copy + undo, Vercel config. In review; then Nathaniel imports the repo on Vercel.
+- Next: plan 003 part 2 = T004 (Connect calendar flow, meetings on the timeline, Settings panel). Daily brief still queued.
 
 ## Roadmap
 1. ~~Plan 002: past days, auto carry-over, backup.~~ Done (PR #4).
