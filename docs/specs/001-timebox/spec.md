@@ -1,7 +1,7 @@
 # Spec: Timebox (personal AI timeboxer)
 
 ## Status
-Approved
+Approved (v1). v2 changes below (history, auto carry-over, share-link calendars): Draft, awaiting approval.
 
 ## Overview
 A calm, browser-based planner for one person's day. You list tasks, Claude fits them into the free gaps around your calendar, and the plan goes onto Google Calendar. During the day it runs a live countdown and, when a block ends, lets you add time; the rest of the day re-flows around fixed meetings with a one-line reason. It runs locally with your own keys and is ready to publish as open source. It also serves as the 10-workday usage test from `docs/idea-vet.md`.
@@ -10,7 +10,10 @@ A calm, browser-based planner for one person's day. You list tasks, Claude fits 
 - As Nathaniel, I can list today's tasks with a length so that I see what my day actually holds.
 - As Nathaniel, I can ask Claude to plan my day so that the important work lands in my best hours and my meetings stay untouched.
 - As Nathaniel, I can drag and adjust blocks myself so that the plan is mine, not the AI's.
-- As Nathaniel, I can send the plan to Google Calendar in one step so that my calendar matches my day.
+- As Nathaniel, I can send the plan to Google Calendar in one step so that my calendar matches my day. *(Later: Google sign-in.)*
+- As Nathaniel, I can paste my Google or Apple calendar's share link once so that my meetings are already on the timeline.
+- As Nathaniel, I can look back at past days so that I see what I actually did.
+- As Nathaniel, unfinished tasks move into the new day on their own so that nothing gets lost overnight.
 - As Nathaniel, I can see what I should be doing right now and how long is left.
 - As Nathaniel, when a block ends I can add 5, 10 or 30 minutes so that running over doesn't wreck the rest of my plan.
 - As someone who finds the repo on GitHub, I can run it with my own keys by following the README.
@@ -24,7 +27,7 @@ A calm, browser-based planner for one person's day. You list tasks, Claude fits 
 
 ### Day timeline
 - FR-004: Today shows as a vertical timeline in 5-minute steps, from a configurable day start to day end.
-- FR-005: Calendar events for today appear on the timeline as fixed blocks I cannot drag.
+- FR-005: Calendar events for today appear on the timeline as fixed blocks I cannot drag. Until a calendar is connected, I can add meetings by hand as fixed blocks.
 - FR-006: I can place a task by dragging it (or pick-then-click) onto a free slot, move it, resize it, and remove it.
 - FR-007: A block cannot overlap another block; an invalid drop shows a short inline message and snaps back.
 - FR-008: Blocks are coloured by kind (deep work, body/outside, light/rest) with a small legend; total planned time is shown.
@@ -35,9 +38,12 @@ A calm, browser-based planner for one person's day. You list tasks, Claude fits 
 - FR-011: If not everything fits, the tasks that didn't fit are listed as unplaced with a short note, not silently dropped.
 
 ### Calendar
-- FR-012: I can connect my Google account; the app then reads today's events and treats them as fixed.
-- FR-013: "Send to calendar" creates one event per planned block (not for calendar events already there) and later updates or removes those same events when the plan changes, without touching events the app didn't create.
-- FR-014: Before sending, I see how many events will be created, changed and removed, and confirm.
+- FR-012 (v2): In the app I can add a calendar by pasting its share link (Google "secret address in iCal format" or an Apple/iCloud shared calendar link) and giving it a name. I can add several and remove any. Today's events from all of them appear as fixed blocks.
+- FR-012a (v2): Events refresh when the app loads and every few minutes while it's open. Changes on the calendar side show up without me doing anything; Apple links may lag.
+- FR-012b (v2): Imported calendars are read-only. The app never changes them.
+- FR-012c (v2): The share link is treated as private: it stays on my machine, is only used to fetch that calendar, and is never logged or shown in full after saving.
+- FR-013 *(Later, needs Google sign-in)*: "Send to calendar" creates one event per planned block (not for calendar events already there) and later updates or removes those same events when the plan changes, without touching events the app didn't create.
+- FR-014 *(Later, needs Google sign-in)*: Before sending, I see how many events will be created, changed and removed, and confirm.
 
 ### Live day
 - FR-015: A "now" marker moves down the timeline; the current block is highlighted with its remaining time counting down.
@@ -47,24 +53,33 @@ A calm, browser-based planner for one person's day. You list tasks, Claude fits 
 - FR-019: I can mark a block done early; the next block can start now (pulling the day earlier) or keep its time, my choice.
 
 ### Persistence and setup
-- FR-020: Today's tasks and plan survive reloads and browser restarts on the same machine. A new day starts empty except for unfinished tasks, which I can carry over.
+- FR-020 (v2): Every day's tasks and plan are kept on this machine indefinitely and survive reloads and browser restarts.
+- FR-020a (v2): When a new day starts, yesterday's unfinished tasks are added to today automatically, unplaced. A short notice says how many were carried, with Undo. On the past day they show as "moved to [date]".
+
+### History
+- FR-023 (v2): Arrows next to the date step back and forward through days. Today is the default; a "Today" link jumps back.
+- FR-024 (v2): A past day is read-only: its timeline, its tasks, which were done, and which moved on. Days with nothing saved show an empty state.
 - FR-021: The app runs locally from a single start command. Keys (Claude API key, Google OAuth client) are read from local configuration, never shipped in the repo, and a sample configuration file plus a README explain setup in under 15 minutes.
 - FR-022: Task names, calendar contents and model output are never logged.
 
 ## Edge Cases & Error States
 - No Claude key or the AI call fails: planning shows a clear message; manual planning still works.
-- Google not connected or token expired: the timeline works without calendar events; a quiet banner offers to reconnect. Sending to calendar is disabled with the reason shown.
+- Calendar link invalid, removed on the provider side, or unreachable: the timeline works without that calendar's events; a quiet note names the calendar and offers to fix or remove the link. Last successful events are kept until the next good refresh.
+- A link that isn't a Google or Apple calendar address is refused with a short reason.
+- Offline: calendar refresh is skipped silently; everything else works.
 - Notifications blocked: the in-app banner at block end still offers +5/+10/+30.
 - Tab in background or laptop asleep at block end: on return, the app shows what was missed and offers "add time" or "move on" for the overdue block.
 - A new calendar event appears mid-day that overlaps planned blocks: on the next refresh, the overlap is flagged and I can ask for a re-flow.
 - Claude returns a plan that breaks the rules (overlap, moves a fixed block): it is rejected and I see "Couldn't make a valid plan. Try again."
 - Zero tasks: an empty state invites me to add tasks or paste a list.
+- Carried tasks: Undo removes them from today and restores them on yesterday as unfinished. A task is carried only once per day, even if the app reloads.
+- The app wasn't opened for several days: unfinished tasks come from the most recent day that has them.
 
 ## Out of Scope
 - Accounts, multi-user, sync across devices, hosting/deployment
 - Payments, waitlist, analytics
 - Phone app, menu bar app, native Mac app
-- Calendars other than Google; multiple Google calendars (primary only for v1)
+- Calendars other than Google and Apple share links; writing to any calendar until Google sign-in (later)
 - Notion or other task-source import
 - Recurring tasks, multi-day planning
 
@@ -72,5 +87,8 @@ A calm, browser-based planner for one person's day. You list tasks, Claude fits 
 - Google testing-mode reconnect: weekly reconnect is acceptable if the 7-day expiry is real (verify during build).
 - Day runs 08:00–21:00 by default, configurable.
 - Default model: Sonnet 5.
-- Unfinished tasks: ask each morning whether to carry them over.
+- Unfinished tasks: ~~ask each morning~~ carried automatically with Undo (v2, 2026-09-30).
+- History: kept forever, browse with arrows by the date (v2, 2026-09-30).
+- Calendars: share-link import pasted in the app, read-only, Google + Apple (v2, 2026-09-30). Google sign-in for writing back stays later.
+- Look: Vercel-style, day and night mode, shadcn/ui (2026-09-30, PR #3).
 - Licence: MIT.
