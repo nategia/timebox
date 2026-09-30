@@ -176,16 +176,16 @@ function TaskRow({ task, index, count, start, picked, onPick, onEdit, onDragOver
         {task.isBreak && " · break"}
       </span>
       <div className="flex shrink-0 opacity-30 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Higher priority" disabled={index === 0} onClick={() => moveTask(task.id, index - 1)}>
+        <Button type="button" variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7" aria-label="Higher priority" disabled={index === 0} onClick={() => moveTask(task.id, index - 1)}>
           <ArrowUp className="h-3.5 w-3.5" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Lower priority" disabled={index === count - 1} onClick={() => moveTask(task.id, index + 1)}>
+        <Button type="button" variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7" aria-label="Lower priority" disabled={index === count - 1} onClick={() => moveTask(task.id, index + 1)}>
           <ArrowDown className="h-3.5 w-3.5" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Edit" onClick={onEdit}>
+        <Button type="button" variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7" aria-label="Edit" onClick={onEdit}>
           <Pencil className="h-3.5 w-3.5" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Delete" onClick={() => deleteTask(task.id)}>
+        <Button type="button" variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7" aria-label="Delete" onClick={() => deleteTask(task.id)}>
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>

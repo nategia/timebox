@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDateKey, shiftDateKey } from "@/domain/time";
+import { formatDateKey, formatShortDateKey, shiftDateKey } from "@/domain/time";
 import { useDayStore } from "@/store/day-store";
 import { Button } from "./ui/button";
 
@@ -24,7 +24,8 @@ export function DayNav() {
         <ChevronLeft />
       </Button>
       <span className="min-w-0 truncate text-muted-foreground" aria-live="polite">
-        {formatDateKey(current)}
+        <span className="sm:hidden">{formatShortDateKey(current)}</span>
+        <span className="hidden sm:inline">{formatDateKey(current)}</span>
       </span>
       <Button
         type="button"
