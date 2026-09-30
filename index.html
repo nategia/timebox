@@ -5,9 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/blank.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Timebox</title>
+    <script>
+      // Set the theme before first paint so night mode doesn't flash white.
+      try {
+        const theme = JSON.parse(localStorage.getItem("timebox") ?? "{}").state?.theme ?? "system";
+        const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+      } catch {}
+    </script>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/App.tsx"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

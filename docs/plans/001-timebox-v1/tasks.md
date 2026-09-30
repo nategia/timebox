@@ -9,13 +9,13 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` (from T00
 ## Progress
 
 **Phase 1: clean slate + manual day** (branch `feat/001-timebox-phase-1`)
-- [ ] T001: Clean slate
-- [ ] T002: Design tokens
-- [ ] T003: Domain core (types, time, validate) + tests
-- [ ] T004: Day store + persistence
-- [ ] T005: Task list
-- [ ] T006: Timeline (place, move, resize, remove)
-- [ ] T007: Day settings + carry-over
+- [x] T001: Clean slate
+- [x] T002: Design tokens
+- [x] T003: Domain core (types, time, validate) + tests
+- [x] T004: Day store + persistence
+- [x] T005: Task list
+- [x] T006: Timeline (place, move, resize, remove)
+- [x] T007: Day settings + carry-over
 
 **Phase 2: Plan it for me** (branch `feat/001-timebox-phase-2`)
 - [ ] T008: Local API plugin + setup
@@ -33,69 +33,69 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` (from T00
 ## Phase 1
 
 ### T001: Clean slate
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** none
 - **Acceptance Criteria:**
-  - [ ] 2024 app deleted: `src/routes/`, `routeTree.gen.ts`, old `src/components/*`, `use-toast.ts`, `App.css`, `components.json`
-  - [ ] Deps removed: react-beautiful-dnd, TanStack Router/Query (+ router plugin, eslint plugin), Radix, react-icons, ramda, class-variance-authority, tailwindcss-animate, their `@types`
-  - [ ] Kept: zustand, lucide-react, clsx, tailwind-merge
-  - [ ] `bun.lockb` deleted; `package-lock.json` regenerated with npm
-  - [ ] `vitest` added (dev) with `npm test` script
-  - [ ] `App.tsx` renders an empty shell; `npm run build` passes
+  - [x] 2024 app deleted: `src/routes/`, `routeTree.gen.ts`, old `src/components/*`, `use-toast.ts`, `App.css`, `components.json`
+  - [x] Deps removed: react-beautiful-dnd, TanStack Router/Query (+ router plugin, eslint plugin), Radix, react-icons, ramda, class-variance-authority, tailwindcss-animate, their `@types`
+  - [x] Kept: zustand, lucide-react, clsx, tailwind-merge
+  - [x] `bun.lockb` deleted; `package-lock.json` regenerated with npm
+  - [x] `vitest` added (dev) with `npm test` script
+  - [x] `App.tsx` renders an empty shell; `npm run build` passes
 
 ### T002: Design tokens
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T001
 - **Acceptance Criteria:**
-  - [ ] `src/styles/tokens.css` holds all colours, fonts, spacing, radii, light + dark
-  - [ ] Kind colours: deep work, body/outside, light/rest, plus fixed; calm, flat, Claude-like
-  - [ ] `tailwind.config.js` maps utilities to the CSS variables
-  - [ ] No hex values anywhere in `src/components/`
+  - [x] `src/styles/tokens.css` holds all colours, fonts, spacing, radii, light + dark
+  - [x] Kind colours: deep work, body/outside, light/rest, plus fixed; calm, flat, Claude-like
+  - [x] `tailwind.config.js` maps utilities to the CSS variables
+  - [x] No hex values anywhere in `src/components/`
 
 ### T003: Domain core + tests
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T001
 - **Acceptance Criteria:**
-  - [ ] `domain/types.ts`: Task (name, minutes, fixed, kind, priority, done), Block (taskId, start, minutes, kind, fixed, source task|calendar|break)
-  - [ ] `domain/time.ts`: minutes ↔ HH:MM, snap to 5 min, slot maths; no React, no Date.now inside pure functions
-  - [ ] `domain/validate.ts`: overlap, day bounds, fixed-block-moved checks, returns a short reason
-  - [ ] Vitest covers: overlap, touching edges allowed, out of bounds, snapping, fixed moved
+  - [x] `domain/types.ts`: Task (name, minutes, fixed, kind, priority, done), Block (taskId, start, minutes, kind, fixed, source task|calendar|break)
+  - [x] `domain/time.ts`: minutes ↔ HH:MM, snap to 5 min, slot maths; no React, no Date.now inside pure functions
+  - [x] `domain/validate.ts`: overlap, day bounds, fixed-block-moved checks, returns a short reason
+  - [x] Vitest covers: overlap, touching edges allowed, out of bounds, snapping, fixed moved
 
 ### T004: Day store + persistence
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T003
 - **Acceptance Criteria:**
-  - [ ] `store/day-store.ts` (Zustand + persist): tasks, blocks, settings; one localStorage key per date + a settings key
-  - [ ] All block writes go through `validate`; invalid returns the reason and changes nothing
-  - [ ] Reload and browser restart keep today's state (FR-020)
+  - [x] `store/day-store.ts` (Zustand + persist): tasks, blocks, settings; one localStorage key per date + a settings key
+  - [x] All block writes go through `validate`; invalid returns the reason and changes nothing
+  - [x] Reload and browser restart keep today's state (FR-020)
 
 ### T005: Task list
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T002, T004
 - **Acceptance Criteria:**
-  - [ ] Add task: name + 5/10/15/30/60 or custom multiple of 5 (FR-001)
-  - [ ] Fixed/flexible toggle and kind picker; breaks default to flexible (FR-002)
-  - [ ] Edit, reorder by priority, delete (FR-003)
-  - [ ] Empty state invites adding tasks
+  - [x] Add task: name + 5/10/15/30/60 or custom multiple of 5 (FR-001)
+  - [x] Fixed/flexible toggle and kind picker; breaks default to flexible (FR-002)
+  - [x] Edit, reorder by priority, delete (FR-003)
+  - [x] Empty state invites adding tasks
 
 ### T006: Timeline
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T005
 - **Acceptance Criteria:**
-  - [ ] Vertical timeline, 5-min steps, day start → end (FR-004)
-  - [ ] Pointer drag task → free slot; move; bottom-edge resize; remove (FR-006)
-  - [ ] Pick-then-click fallback (keyboard reachable)
-  - [ ] Invalid drop: inline message, snaps back (FR-007)
-  - [ ] Meetings added by hand as fixed blocks, not draggable (stand-in for FR-005 until plan 002)
-  - [ ] Colour by kind, legend, total planned time (FR-008)
+  - [x] Vertical timeline, 5-min steps, day start → end (FR-004)
+  - [x] Pointer drag task → free slot; move; bottom-edge resize; remove (FR-006)
+  - [x] Pick-then-click fallback (keyboard reachable)
+  - [x] Invalid drop: inline message, snaps back (FR-007)
+  - [x] Meetings added by hand as fixed blocks, not draggable (stand-in for FR-005 until plan 002)
+  - [x] Colour by kind, legend, total planned time (FR-008)
 
 ### T007: Day settings + carry-over
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T006
 - **Acceptance Criteria:**
-  - [ ] Day start/end configurable, default 08:00–21:00
-  - [ ] New day starts empty; if yesterday has unfinished tasks, prompt to carry them over (FR-020)
-  - [ ] Old day keys don't pile up forever (keep last 7)
+  - [x] Day start/end configurable, default 08:00–21:00
+  - [x] New day starts empty; if yesterday has unfinished tasks, prompt to carry them over (FR-020)
+  - [x] Old day keys don't pile up forever (keep last 7)
 
 ---
 
