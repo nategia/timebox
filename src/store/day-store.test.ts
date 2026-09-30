@@ -7,7 +7,7 @@ const store = () => useDayStore.getState();
 const today = () => store().days[store().today];
 
 beforeEach(() => {
-  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 }, viewDate: null, calendars: [], externalBlocks: [], undo: null });
+  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 }, viewDate: null, calendars: [], externalBlocks: [], undoStack: [] });
   store().syncToday(new Date(2026, 8, 30, 9));
 });
 
@@ -109,11 +109,23 @@ describe("day store", () => {
     const [first] = today().tasks;
     store().placeTask(first.id, 540);
     store().deleteTask(first.id);
-    expect(store().undo).toMatchObject({ kind: "task", label: "Write" });
+    expect(store().undoStack.at(-1)).toMatchObject({ kind: "task", label: "Write" });
     store().undoDelete();
     expect(today().tasks.map((t) => t.name)).toEqual(["Write", "Second"]);
     expect(today().blocks[0]).toMatchObject({ taskId: first.id, start: 540 });
-    expect(store().undo).toBeNull();
+    expect(store().undoStack).toEqual([]);
+  });
+
+  it("undo steps back through several deletes, newest first", () => {
+    for (const name of ["A", "B", "C", "D"]) store().addTask({ ...task, name });
+    for (let i = 0; i < 3; i++) store().deleteTask(today().tasks[0].id);
+    expect(today().tasks.map((t) => t.name)).toEqual(["D"]);
+    store().undoDelete();
+    expect(today().tasks.map((t) => t.name)).toEqual(["C", "D"]);
+    store().undoDelete();
+    store().undoDelete();
+    expect(today().tasks.map((t) => t.name)).toEqual(["A", "B", "C", "D"]);
+    expect(store().undoStack).toEqual([]);
   });
 
   it("undo returns a task unplaced if its slot was taken meanwhile", () => {

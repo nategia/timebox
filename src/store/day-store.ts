@@ -14,7 +14,7 @@ export type { Theme };
 
 export type NewTask = Pick<Task, "name" | "minutes" | "kind" | "fixed" | "isBreak">;
 
-/** The last delete, kept briefly so it can be undone. Restores just what was deleted, not the whole day. */
+/** One delete that can be undone. Restores just what was deleted, not the whole day. */
 export type UndoEntry =
   | { kind: "task"; label: string; date: string; task: Task; index: number; block?: Block }
   | { kind: "block"; label: string; date: string; block: Block }
@@ -35,8 +35,8 @@ type State = {
    * they're re-fetched, so a cancelled meeting disappears and history stays your own plan.
    */
   externalBlocks: Block[];
-  /** Not persisted: an undo only makes sense in the moment. */
-  undo: UndoEntry | null;
+  /** Deletes that can be undone, newest last. Not persisted: undo is for this session only. */
+  undoStack: UndoEntry[];
 };
 
 type Actions = {
@@ -59,9 +59,8 @@ type Actions = {
   dismissSafariNotice: () => void;
   addCalendar: (name: string, url: string) => { ok: true; id: string } | { ok: false; problem: LinkProblem | "duplicate" };
   removeCalendar: (id: string) => void;
-  /** Reverses the last delete (task, block or calendar). */
+  /** Reverses the most recent delete still on the stack (task, block or calendar). */
   undoDelete: () => void;
-  clearUndo: () => void;
   setExternalBlocks: (blocks: Block[]) => void;
   /** Removes today's carried tasks and restores them as unfinished on the source day. */
   undoCarryOver: () => void;
@@ -105,6 +104,8 @@ export function migrate(persisted: unknown, version: number): Persisted {
 export const useStorageStatus = create<{ full: boolean }>(() => ({ full: false }));
 
 export const SNAPSHOT_KEY = "timebox-safety-copy";
+
+const UNDO_LIMIT = 20;
 
 /** Cheap proxy for "how much is in here": every task and calendar has a `"name":` field. */
 const countNames = (json: string) => json.split('"name":').length - 1;
@@ -159,6 +160,10 @@ export const useDayStore = create<State & Actions>()(
       const setDay = (update: (d: Day) => Day) =>
         set((s) => ({ days: { ...s.days, [s.today]: update(s.days[s.today] ?? emptyDay()) } }));
 
+      /** Undo history is capped so a long session can't grow it without bound. */
+      const pushUndo = (entry: UndoEntry) =>
+        set((s) => ({ undoStack: [...s.undoStack, entry].slice(-UNDO_LIMIT) }));
+
       /** Writes a block only if it validates against the rest of today, meetings from calendars included. */
       const commitBlock = (block: Block, extra?: (d: Day) => Day): Validation => {
         const current = day();
@@ -183,7 +188,7 @@ export const useDayStore = create<State & Actions>()(
         safariNoticeDismissed: false,
         calendars: [],
         externalBlocks: [],
-        undo: null,
+        undoStack: [],
 
         syncToday: (now = new Date()) => {
           const today = localDateKey(now);
@@ -230,7 +235,7 @@ export const useDayStore = create<State & Actions>()(
             tasks: d.tasks.filter((t) => t.id !== id),
             blocks: d.blocks.filter((b) => !(b.source === "task" && b.taskId === id)),
           }));
-          set({ undo: { kind: "task", label: task.name, date: get().today, task, index, block } });
+          pushUndo({ kind: "task", label: task.name, date: get().today, task, index, block });
         },
 
         moveTask: (id, toIndex) =>
@@ -286,7 +291,7 @@ export const useDayStore = create<State & Actions>()(
           setDay((d) => ({ ...d, blocks: d.blocks.filter((b) => b.id !== id) }));
           const label =
             block.source === "event" ? block.title : (day().tasks.find((t) => t.id === block.taskId)?.name ?? "block");
-          set({ undo: { kind: "block", label: `${label} from the timeline`, date: get().today, block } });
+          pushUndo({ kind: "block", label: `${label} from the timeline`, date: get().today, block });
         },
 
         setSettings: (settings) => {
@@ -327,16 +332,14 @@ export const useDayStore = create<State & Actions>()(
           const index = get().calendars.findIndex((c) => c.id === id);
           if (index < 0) return;
           const calendar = get().calendars[index];
-          set((s) => ({
-            calendars: s.calendars.filter((c) => c.id !== id),
-            undo: { kind: "calendar", label: calendar.name, calendar, index },
-          }));
+          set((s) => ({ calendars: s.calendars.filter((c) => c.id !== id) }));
+          pushUndo({ kind: "calendar", label: calendar.name, calendar, index });
         },
 
         undoDelete: () => {
-          const entry = get().undo;
-          set({ undo: null });
+          const entry = get().undoStack.at(-1);
           if (!entry) return;
+          set((s) => ({ undoStack: s.undoStack.slice(0, -1) }));
           if (entry.kind === "calendar") {
             set((s) => {
               const calendars = [...s.calendars];
@@ -359,8 +362,6 @@ export const useDayStore = create<State & Actions>()(
           }
           commitBlock(entry.block);
         },
-
-        clearUndo: () => set({ undo: null }),
 
         setExternalBlocks: (externalBlocks) => set({ externalBlocks }),
 

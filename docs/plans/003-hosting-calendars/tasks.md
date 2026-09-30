@@ -54,7 +54,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [x] Best-effort: skipped if storage is tight, never blocks the real save
   - [x] "Restore safety copy" in Your data, same validation and confirm as importing
   - [x] Test: once per day for small changes, fresh copy on a big drop
-  - [x] Undo after deleting a task, block or calendar ("Deleted X · Undo", 8 s); restores just that item, in place; task comes back unplaced if its slot was taken
+  - [x] Undo history of deletes (task, block, calendar; last 20, newest first; bar for 8 s after each change; ⌘Z / Ctrl+Z any time outside text fields); each undo restores just that item, in place; a task comes back unplaced if its slot was taken
   - [x] Restore confirm shows task counts (copy vs now) and refuses when the copy equals the current data
   - Lesson: the start-of-day copy doesn't catch one-at-a-time deletes; restoring it wiped Nathaniel's test tasks. Undo is the primary protection now.
 
