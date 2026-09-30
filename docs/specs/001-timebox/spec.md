@@ -41,6 +41,7 @@ A calm, browser-based planner for one person's day. You list tasks, Claude fits 
 - FR-012 (v2): In the app I can add a calendar by pasting its share link (Google "secret address in iCal format" or an Apple/iCloud shared calendar link) and giving it a name. I can add several and remove any. Today's events from all of them appear as fixed blocks.
 - FR-012a (v2): Events refresh when the app loads and every few minutes while it's open. Changes on the calendar side show up without me doing anything; Apple links may lag.
 - FR-012b (v2): Imported calendars are read-only. The app never changes them.
+- FR-012d (v2): Recurring meetings, meetings with exceptions, and all-day events appear correctly on the right day and in my local time. All-day events show as a note above the timeline, not as blocks.
 - FR-012c (v2): The share link is treated as private: it is saved only in my browser, is only used to fetch that calendar, is never stored or logged on the server, and is not shown in full after saving.
 - FR-013 *(Later, needs Google sign-in)*: "Send to calendar" creates one event per planned block (not for calendar events already there) and later updates or removes those same events when the plan changes, without touching events the app didn't create.
 - FR-014 *(Later, needs Google sign-in)*: Before sending, I see how many events will be created, changed and removed, and confirm.
@@ -53,7 +54,9 @@ A calm, browser-based planner for one person's day. You list tasks, Claude fits 
 - FR-019: I can mark a block done early; the next block can start now (pulling the day earlier) or keep its time, my choice.
 
 ### Persistence and setup
-- FR-020 (v2): Every day's tasks and plan are kept on this machine indefinitely and survive reloads and browser restarts.
+- FR-020 (v2): Every day's tasks and plan are kept in this browser with no time limit and survive reloads and browser restarts.
+- FR-020b (v2): I can export all my days and settings to a file and import that file later, in this or another browser, to restore them. Import asks before replacing anything.
+- FR-020c (v2): The app asks the browser to keep its data permanently. On Safari, which can delete site data after about a week without a visit, a one-time notice suggests adding the app to the Dock or Home Screen and exporting a backup.
 - FR-020a (v2): When a new day starts, yesterday's unfinished tasks are added to today automatically, unplaced. A short notice says how many were carried, with Undo. On the past day they show as "moved to [date]".
 
 ### History
@@ -73,6 +76,7 @@ A calm, browser-based planner for one person's day. You list tasks, Claude fits 
 - Wrong access code: a short "That code didn't work" message; repeated wrong attempts are slowed down so the code can't be guessed.
 - Calendar link invalid, removed on the provider side, or unreachable: the timeline works without that calendar's events; a quiet note names the calendar and offers to fix or remove the link. Last successful events are kept until the next good refresh.
 - A link that isn't a Google or Apple calendar address is refused with a short reason.
+- Work or school Google accounts whose admin turned off secret addresses: the help text says so and suggests the Apple route or a personal calendar.
 - Offline: calendar refresh is skipped silently; everything else works.
 - Notifications blocked: the in-app banner at block end still offers +5/+10/+30.
 - Tab in background or laptop asleep at block end: on return, the app shows what was missed and offers "add time" or "move on" for the overdue block.
@@ -98,5 +102,5 @@ A calm, browser-based planner for one person's day. You list tasks, Claude fits 
 - History: kept forever, browse with arrows by the date (v2, 2026-09-30).
 - Calendars: share-link import pasted in the app, read-only, Google + Apple (v2, 2026-09-30). Google sign-in for writing back stays later.
 - Look: Vercel-style, day and night mode, shadcn/ui (2026-09-30, PR #3).
-- Hosting: free public web app, data in each visitor's browser, AI owner-only via access code (v2, 2026-09-30).
+- Hosting: free public web app, data in each visitor's browser, AI owner-only via access code (v2, 2026-09-30). Stays non-commercial (hosting terms); see idea-vet addendum.
 - Licence: MIT.
