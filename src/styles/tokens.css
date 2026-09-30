@@ -1,0 +1,47 @@
+/*
+ * The only place for colours, fonts, spacing and radii.
+ * Colours are RGB channels so Tailwind can apply opacity (`bg-deep/20`).
+ */
+:root {
+  --color-bg: 245 244 238;
+  --color-surface: 255 255 255;
+  --color-ink: 40 38 34;
+  --color-muted: 120 115 105;
+  --color-line: 226 223 213;
+  --color-accent: 201 100 66;
+  --color-danger: 180 60 50;
+
+  /* Block kinds */
+  --color-deep: 201 100 66;
+  --color-body: 110 145 105;
+  --color-light: 150 140 190;
+  --color-fixed: 120 125 135;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+
+  --space-gutter: 16px;
+
+  /* Timeline: height of one 5-minute slot (1 hour = 12 slots) */
+  --slot-height: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: 30 29 27;
+    --color-surface: 40 39 36;
+    --color-ink: 236 233 225;
+    --color-muted: 160 155 145;
+    --color-line: 62 60 56;
+    --color-accent: 218 125 92;
+    --color-danger: 230 110 95;
+
+    --color-deep: 218 125 92;
+    --color-body: 140 175 130;
+    --color-light: 170 160 210;
+    --color-fixed: 140 145 155;
+  }
+}
