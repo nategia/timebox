@@ -8,7 +8,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 
 ## Progress
 
-- [ ] T001: Spike: fetch + expand your real calendars (blocking)
+- [x] T001: Spike: fetch + expand your real calendars (partial pass; real-recurrence check moved to T004)
 - [ ] T002: `/api/calendar` function, guards, dev middleware
 - [ ] T003: Store v3 (`calendars`, `externalBlocks`) + backups
 - [ ] T004: Calendar settings, live events on the timeline
@@ -17,13 +17,13 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 ---
 
 ### T001: Spike: fetch + expand your real calendars (blocking)
-- **Status:** `[ ]`
+- **Status:** `[~]`
 - **Dependencies:** none
 - **Acceptance Criteria:**
-  - [ ] `ical.js` added; `server/calendar.ts` has `expandDay(ics, from, to)` returning timed events (UTC instants) and all-day titles
-  - [ ] Script `scripts/spike-calendar.ts` reads links from gitignored `.local/calendars.json`, prints today's and tomorrow's events in local time (titles only on your screen, nothing written)
-  - [ ] Pass: your Google and iCloud events for 2 days match the Calendar app, incl. one recurring, one moved/cancelled instance, one all-day. Fail → stop and report
-  - [ ] Fixture tests (no real data): weekly RRULE, EXDATE, RECURRENCE-ID override, all-day, event crossing midnight, DST day in Europe/Rome
+  - [x] `ical.js` added; `server/calendar.ts` has `expandDay(ics, from, to)` returning timed events (UTC instants) and all-day titles
+  - [x] Script `scripts/spike-calendar.ts` reads links from gitignored `.local/calendars.json`, prints today's and tomorrow's events in local time (titles only on your screen, nothing written)
+  - [~] Pass: real iCloud link fetched + parsed (p52, 4 KB, 15 ms), correct empty result; Google link was the Calendar page address (now detected with a clear message). Real repeating events not yet available → **re-check in T004** (decided 2026-09-30)
+  - [x] Fixture tests (no real data): weekly RRULE, EXDATE, RECURRENCE-ID override, cancelled instance, all-day, event crossing midnight, TZID without VTIMEZONE, DST day in Europe/Rome
 
 ### T002: `/api/calendar` function, guards, dev middleware
 - **Status:** `[ ]`
@@ -53,7 +53,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [ ] `use-calendars`: fetch on load, focus, every 5 min while visible; cache last good per calendar in `timebox-calendar-cache`; keep last good on error
   - [ ] Meetings render as fixed, non-draggable blocks (today only); all-day events as notes above the grid
   - [ ] Task blocks overlapping a meeting show "clashes with [meeting]"
-  - [ ] Verified with your real links in the local app
+  - [ ] Verified with your real links in the local app, **including a repeating event, a moved/cancelled instance and an all-day event** (carried over from T001)
 
 ### T005: Vercel config, headers, README, first deploy
 - **Status:** `[ ]`
