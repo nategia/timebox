@@ -17,7 +17,7 @@ export function DayNav() {
         type="button"
         variant="ghost"
         size="icon"
-        className="h-7 w-7"
+        className="h-7 w-6 sm:w-7"
         aria-label="Previous day"
         onClick={() => setViewDate(shiftDateKey(current, -1))}
       >
@@ -31,7 +31,7 @@ export function DayNav() {
         type="button"
         variant="ghost"
         size="icon"
-        className="h-7 w-7"
+        className="h-7 w-6 sm:w-7"
         aria-label="Next day"
         disabled={onToday}
         onClick={() => setViewDate(shiftDateKey(current, 1))}

@@ -44,7 +44,7 @@ export function TaskList({ pickedTaskId, onPick }: Props) {
     blocks.find((b) => b.source === "task" && b.taskId === task.id)?.start;
 
   return (
-    <section className="flex flex-col gap-3" aria-label="Tasks">
+    <section className="flex flex-col gap-3 md:sticky md:top-20 md:max-h-[calc(100dvh-6rem)] md:self-start md:overflow-y-auto" aria-label="Tasks">
       {!readOnly && (
       <TaskForm
         submitLabel="Add"

@@ -25,17 +25,17 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
   const { placeTask, moveBlock, resizeBlock, removeBlock } = useDayStore.getState();
   const { message, flash } = useFlash();
   const grid = useRef<HTMLDivElement>(null);
-  const scroller = useRef<HTMLDivElement>(null);
   const now = useNow();
   const showNow = !readOnly && now >= dayStart && now <= dayEnd;
 
-  // Open at the current time: scroll so "now" sits a third of the way down. Earlier hours stay a scroll away.
+  // Laptop: open with "now" a third of the way down the page (the task list is sticky, so it stays in view).
+  // Phone: stay at the top, where the task form is; the now line is a scroll away.
   useEffect(() => {
-    const box = scroller.current;
-    if (!box || readOnly) return;
+    const el = grid.current;
+    if (!el || readOnly || !window.matchMedia("(min-width: 768px)").matches) return;
     const minute = Math.min(Math.max(new Date().getHours() * 60 + new Date().getMinutes(), dayStart), dayEnd);
-    const y = ((minute - dayStart) / (dayEnd - dayStart)) * (grid.current?.clientHeight ?? 0);
-    box.scrollTop = Math.max(0, y - box.clientHeight / 3);
+    const y = el.getBoundingClientRect().top + window.scrollY + ((minute - dayStart) / (dayEnd - dayStart)) * el.clientHeight;
+    window.scrollTo({ top: Math.max(0, y - window.innerHeight / 3) });
   }, [readOnly, dayStart, dayEnd]);
 
   const total = dayEnd - dayStart;
@@ -108,8 +108,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
         {message}
       </p>
 
-      {/* Its own scroll area, so jumping to "now" never scrolls the task list away. */}
-      <div ref={scroller} className="max-h-[calc(100dvh-12rem)] min-h-64 overflow-y-auto pt-2">
+      <div className="pt-2">
       <div
         ref={grid}
         className={cn("relative select-none border-t", picked && "cursor-copy")}

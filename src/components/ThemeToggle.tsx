@@ -16,6 +16,7 @@ export function ThemeToggle() {
       type="button"
       variant="ghost"
       size="sm"
+      className="px-2 sm:px-3"
       aria-label={`Theme: ${LABEL[theme]}. Switch to ${LABEL[NEXT[theme]]}`}
       title={`Theme: ${LABEL[theme]}`}
       onClick={() => setTheme(NEXT[theme])}
