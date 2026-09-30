@@ -1,4 +1,4 @@
-import { SLOT_MINUTES } from "./time";
+import { SLOT_MINUTES, isSlotMultiple } from "./time";
 import { type Block, type Day, type DayBounds, type Days, KINDS, type Task, type Theme, THEMES } from "./types";
 
 export type BackupData = { days: Days; settings: DayBounds; theme: Theme };
@@ -34,12 +34,22 @@ function isTask(v: unknown): v is Task {
   );
 }
 
+const MINUTES_IN_DAY = 24 * 60;
+
 function isBlock(v: unknown): v is Block {
   if (!isRecord(v) || !isString(v.id) || !isNumber(v.start) || !isNumber(v.minutes) || !isBool(v.fixed)) return false;
+  // Same grid rules the timeline enforces, so an imported block can always be moved or resized later.
+  if (v.start < 0 || v.start % SLOT_MINUTES !== 0 || !isSlotMultiple(v.minutes) || v.start + v.minutes > MINUTES_IN_DAY) {
+    return false;
+  }
   if (v.source === "task") return isString(v.taskId);
   if (v.source === "event") return isString(v.title);
   return false;
 }
+
+const isCarriedIn = (v: unknown): v is Day["carriedIn"] =>
+  v === undefined ||
+  (isRecord(v) && isString(v.from) && DATE_KEY.test(v.from) && Array.isArray(v.taskIds) && v.taskIds.every(isString));
 
 /** Checks a v2 day. Older versions are migrated before this runs. */
 function isDay(v: unknown): v is Day {
@@ -49,7 +59,8 @@ function isDay(v: unknown): v is Day {
     v.tasks.every(isTask) &&
     Array.isArray(v.blocks) &&
     v.blocks.every(isBlock) &&
-    isBool(v.carryOverDone)
+    isBool(v.carryOverDone) &&
+    isCarriedIn(v.carriedIn)
   );
 }
 

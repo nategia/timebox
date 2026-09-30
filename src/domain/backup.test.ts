@@ -48,4 +48,17 @@ describe("backup", () => {
     const result = parse(JSON.stringify({ app: "timebox", version: 1, exportedAt: "x", data: v1 }));
     expect(result.ok && result.data.days["2026-09-29"].carryOverDone).toBe(true);
   });
+
+  it("rejects a malformed carry-over record", () => {
+    const bad = { ...data, days: { "2026-09-30": { ...data.days["2026-09-30"], carriedIn: {} } } };
+    expect(parse(serializeBackup(bad as unknown as BackupData, 2, new Date()))).toMatchObject({ ok: false });
+  });
+
+  it("rejects blocks off the 5-minute grid or outside the day", () => {
+    const block = data.days["2026-09-30"].blocks[0];
+    for (const broken of [{ start: -30 }, { start: 542 }, { minutes: 0 }, { start: 1430, minutes: 30 }]) {
+      const bad = { ...data, days: { "2026-09-30": { ...data.days["2026-09-30"], blocks: [{ ...block, ...broken }] } } };
+      expect(parse(serializeBackup(bad as BackupData, 2, new Date()))).toMatchObject({ ok: false });
+    }
+  });
 });

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useDayStore } from "@/store/day-store";
+import { useDayStore, useStorageStatus } from "@/store/day-store";
 
 const STORAGE_KEY = "timebox";
 
@@ -13,14 +13,18 @@ export function useDayRollover() {
   const syncToday = useDayStore((s) => s.syncToday);
 
   useEffect(() => {
+    // When storage is full, memory holds changes that couldn't be saved; reloading would lose them.
+    const reload = async () => {
+      if (!useStorageStatus.getState().full) await useDayStore.persist.rehydrate();
+    };
     const refresh = async () => {
-      await useDayStore.persist.rehydrate();
+      await reload();
       syncToday();
     };
     void refresh();
 
     const onVisible = () => document.visibilityState === "visible" && void refresh();
-    const onStorage = (e: StorageEvent) => e.key === STORAGE_KEY && void useDayStore.persist.rehydrate();
+    const onStorage = (e: StorageEvent) => e.key === STORAGE_KEY && void reload();
 
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("storage", onStorage);
