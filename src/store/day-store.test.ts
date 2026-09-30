@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { guardedStorage, migrate, previousUnfinished, useDayStore, useStorageStatus } from "./day-store";
+import { guardedStorage, migrate, useDayStore, useStorageStatus } from "./day-store";
 
 const task = { name: "Write", minutes: 30, kind: "deep", fixed: false, isBreak: false } as const;
 
@@ -29,16 +29,17 @@ describe("day store", () => {
     expect(today().tasks[0].minutes).toBe(45);
   });
 
-  it("offers unfinished tasks from the previous day", () => {
+  it("carries unfinished tasks into the new day once, with undo", () => {
     store().addTask(task);
     store().addTask({ ...task, name: "Done one" });
     store().updateTask(today().tasks[1].id, { done: true });
     store().syncToday(new Date(2026, 9, 1, 8));
-    const previous = previousUnfinished(store());
-    expect(previous?.tasks.map((t) => t.name)).toEqual(["Write"]);
-    store().carryOver(previous!.tasks.map((t) => t.id));
     expect(today().tasks.map((t) => t.name)).toEqual(["Write"]);
-    expect(today().carryOverDone).toBe(true);
+    store().syncToday(new Date(2026, 9, 1, 9));
+    expect(today().tasks).toHaveLength(1);
+    store().undoCarryOver();
+    expect(today().tasks).toHaveLength(0);
+    expect(store().days["2026-09-30"].tasks[0].movedTo).toBeUndefined();
   });
 
   it("keeps every day", () => {
@@ -46,7 +47,8 @@ describe("day store", () => {
       store().syncToday(new Date(2026, 9, d, 9));
       store().addTask(task);
     }
-    expect(Object.keys(store().days)).toHaveLength(10);
+    // 10 October days plus the 30 September day created in beforeEach.
+    expect(Object.keys(store().days)).toHaveLength(11);
   });
 
   it("keeps a later day when the clock moves back", () => {

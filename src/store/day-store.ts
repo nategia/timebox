@@ -1,17 +1,11 @@
 import { create } from "zustand";
 import { type StateStorage, createJSONStorage, persist } from "zustand/middleware";
 import { SLOT_MINUTES, localDateKey } from "@/domain/time";
-import type { Block, DayBounds, Task } from "@/domain/types";
+import { carryOver, undoCarryOver } from "@/domain/carry-over";
+import type { Block, Day, DayBounds, Days, Task } from "@/domain/types";
 import { type Validation, validateBlock } from "@/domain/validate";
 
-export type Day = {
-  tasks: Task[];
-  blocks: Block[];
-  /** Carry-over already ran (or was undone) for this day, so a reload never carries twice. */
-  carryOverDone: boolean;
-  /** What auto carry-over added to this day, for the notice and Undo. */
-  carriedIn?: { from: string; taskIds: string[] };
-};
+export type { Day };
 
 export type Settings = DayBounds;
 
@@ -22,7 +16,7 @@ export type NewTask = Pick<Task, "name" | "minutes" | "kind" | "fixed" | "isBrea
 
 type State = {
   today: string;
-  days: Record<string, Day>;
+  days: Days;
   settings: Settings;
   theme: Theme;
 };
@@ -41,7 +35,10 @@ type Actions = {
   removeBlock: (id: string) => void;
   setSettings: (settings: Settings) => Validation;
   setTheme: (theme: Theme) => void;
-  carryOver: (taskIds: string[]) => void;
+  /** Removes today's carried tasks and restores them as unfinished on the source day. */
+  undoCarryOver: () => void;
+  /** Hides the carry-over notice but keeps the tasks. */
+  dismissCarryNotice: () => void;
 };
 
 const DEFAULT_SETTINGS: Settings = { start: 8 * 60, end: 21 * 60 };
@@ -90,17 +87,6 @@ export const guardedStorage = (): StateStorage => {
   };
 };
 
-/** Most recent earlier day with unfinished tasks, for the carry-over prompt. */
-export function previousUnfinished(state: Pick<State, "days" | "today">): { date: string; tasks: Task[] } | null {
-  const date = Object.keys(state.days)
-    .filter((k) => k < state.today)
-    .sort()
-    .at(-1);
-  if (!date) return null;
-  const tasks = state.days[date].tasks.filter((t) => !t.done);
-  return tasks.length ? { date, tasks } : null;
-}
-
 export const useDayStore = create<State & Actions>()(
   persist(
     (set, get) => {
@@ -131,7 +117,9 @@ export const useDayStore = create<State & Actions>()(
         theme: "system",
 
         syncToday: (now = new Date()) => {
-          set({ today: localDateKey(now) });
+          const today = localDateKey(now);
+          // Auto carry-over runs here: on load, tab focus and midnight rollover. It's a no-op once done for today.
+          set((s) => ({ today, days: carryOver(s.days, today, newId) }));
         },
 
         addTask: (task) =>
@@ -232,13 +220,9 @@ export const useDayStore = create<State & Actions>()(
 
         setTheme: (theme) => set({ theme }),
 
-        carryOver: (taskIds) => {
-          const previous = previousUnfinished(get());
-          const carried = (previous?.tasks ?? [])
-            .filter((t) => taskIds.includes(t.id))
-            .map((t) => ({ ...t, id: newId(), done: false }));
-          setDay((d) => ({ ...d, tasks: [...d.tasks, ...carried], carryOverDone: true }));
-        },
+        undoCarryOver: () => set((s) => ({ days: undoCarryOver(s.days, s.today) })),
+
+        dismissCarryNotice: () => setDay((d) => ({ ...d, carriedIn: undefined })),
       };
     },
     {

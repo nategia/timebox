@@ -9,7 +9,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 ## Progress
 
 - [x] T001: Store v2 (keep forever, migration)
-- [ ] T002: Auto carry-over + Undo
+- [x] T002: Auto carry-over + Undo
 - [ ] T003: Browse past days (read-only)
 - [ ] T004: Backup export/import
 - [ ] T005: Persistent storage + Safari notice
@@ -26,14 +26,14 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [x] A write that exceeds storage quota shows "Storage is full, export a backup" (no silent failure)
 
 ### T002: Auto carry-over + Undo
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** T001
 - **Acceptance Criteria:**
-  - [ ] `domain/carry-over.ts` pure: source = latest earlier day with unfinished, not-moved tasks; copies get new ids, unplaced, not done; source tasks get `movedTo`
-  - [ ] Runs in `syncToday` once per day (`carryOverDone`); reload doesn't carry twice
-  - [ ] Notice "Carried N from [day] · Undo", dismissible; Undo removes copies and clears `movedTo`, and doesn't re-carry
-  - [ ] Old tick-to-carry prompt removed
-  - [ ] Tests: skipped days, nothing unfinished, undo, run twice
+  - [x] `domain/carry-over.ts` pure: source = latest earlier day with unfinished, not-moved tasks; copies get new ids, unplaced, not done; source tasks get `movedTo`
+  - [x] Runs in `syncToday` once per day (`carryOverDone`); reload doesn't carry twice
+  - [x] Notice "Carried N from [day] · Undo", dismissible; Undo removes copies and clears `movedTo`, and doesn't re-carry
+  - [x] Old tick-to-carry prompt removed
+  - [x] Tests: skipped days, nothing unfinished, undo, run twice
 
 ### T003: Browse past days (read-only)
 - **Status:** `[ ]`

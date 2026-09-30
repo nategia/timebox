@@ -37,3 +37,15 @@ export type Block = {
 );
 
 export type DayBounds = { start: number; end: number };
+
+export type Day = {
+  tasks: Task[];
+  blocks: Block[];
+  /** Carry-over already ran (or was undone) for this day, so a reload never carries twice. */
+  carryOverDone: boolean;
+  /** What auto carry-over added to this day, for the notice and Undo. */
+  carriedIn?: { from: string; taskIds: string[] };
+};
+
+/** Saved days keyed by local date, e.g. "2026-09-30". */
+export type Days = Record<string, Day>;
