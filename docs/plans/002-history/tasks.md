@@ -10,6 +10,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 
 - [x] T001: Store v2 (keep forever, migration)
 - [x] T002: Auto carry-over + Undo
+- [x] T002a: Priority ranks + drag to reorder (added 2026-09-30, your request)
 - [ ] T003: Browse past days (read-only)
 - [ ] T004: Backup export/import
 - [ ] T005: Persistent storage + Safari notice
@@ -34,6 +35,16 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [x] Notice "Carried N from [day] · Undo", dismissible; Undo removes copies and clears `movedTo`, and doesn't re-carry
   - [x] Old tick-to-carry prompt removed
   - [x] Tests: skipped days, nothing unfinished, undo, run twice
+
+### T002a: Priority ranks + drag to reorder
+- **Status:** `[x]`
+- **Dependencies:** none (added mid-plan at Nathaniel's request; FR-003 "reorder by priority")
+- **Acceptance Criteria:**
+  - [x] Each task shows its rank; #1 filled, #2–3 outlined, rest quiet
+  - [x] "Priority · top is most important · drag to reorder" header above the list
+  - [x] Drag a row within the list to reorder, with a drop line; dragging onto the timeline still places it
+  - [x] Arrows stay for keyboard users, dimmed instead of hidden
+  - [x] `dropIndex` tested
 
 ### T003: Browse past days (read-only)
 - **Status:** `[ ]`
