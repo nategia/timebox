@@ -142,11 +142,20 @@ export const guardedStorage = (): StateStorage => {
     removeItem: (key) => localStorage.removeItem(key),
     setItem: (key, value) => {
       takeSafetyCopy(localStorage.getItem(key), value);
-      try {
+      const write = () => {
         localStorage.setItem(key, value);
         if (useStorageStatus.getState().full) useStorageStatus.setState({ full: false });
+      };
+      try {
+        write();
       } catch {
-        useStorageStatus.setState({ full: true });
+        // The safety copy is a luxury: if it's what filled storage, drop it and save the real data.
+        try {
+          localStorage.removeItem(SNAPSHOT_KEY);
+          write();
+        } catch {
+          useStorageStatus.setState({ full: true });
+        }
       }
     },
   };

@@ -244,6 +244,29 @@ describe("persistence", () => {
   });
 });
 
+describe("storage limits", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("drops the safety copy rather than failing the real save", () => {
+    const store = new Map<string, string>();
+    const LIMIT = 100; // total characters across keys
+    const used = () => [...store.values()].reduce((n, v) => n + v.length, 0);
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => store.get(k) ?? null,
+      removeItem: (k: string) => store.delete(k),
+      setItem: (k: string, v: string) => {
+        if (used() - (store.get(k)?.length ?? 0) + v.length > LIMIT) throw new DOMException("full", "QuotaExceededError");
+        store.set(k, v);
+      },
+    });
+    useStorageStatus.setState({ full: false });
+    const storage = guardedStorage();
+    storage.setItem("timebox", JSON.stringify({ state: { a: "x".repeat(20) }, version: 3 }));
+    storage.setItem("timebox", JSON.stringify({ state: { a: "y".repeat(40) }, version: 3 }));
+    expect(JSON.parse(store.get("timebox")!).state.a).toBe("y".repeat(40));
+    expect(useStorageStatus.getState().full).toBe(false);
+  });
+});
+
 const countTasks = (backup: string) =>
   (JSON.parse(backup).data.days["2026-09-30"].tasks as unknown[]).length;
-
