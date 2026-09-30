@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { previousUnfinished, useDayStore } from "./day-store";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { guardedStorage, migrate, previousUnfinished, useDayStore, useStorageStatus } from "./day-store";
 
 const task = { name: "Write", minutes: 30, kind: "deep", fixed: false, isBreak: false } as const;
 
@@ -38,15 +38,15 @@ describe("day store", () => {
     expect(previous?.tasks.map((t) => t.name)).toEqual(["Write"]);
     store().carryOver(previous!.tasks.map((t) => t.id));
     expect(today().tasks.map((t) => t.name)).toEqual(["Write"]);
-    expect(today().carryOverHandled).toBe(true);
+    expect(today().carryOverDone).toBe(true);
   });
 
-  it("keeps only the last 7 days", () => {
+  it("keeps every day", () => {
     for (let d = 1; d <= 10; d++) {
       store().syncToday(new Date(2026, 9, d, 9));
       store().addTask(task);
     }
-    expect(Object.keys(store().days)).toHaveLength(7);
+    expect(Object.keys(store().days)).toHaveLength(10);
   });
 
   it("keeps a later day when the clock moves back", () => {
@@ -61,3 +61,28 @@ describe("day store", () => {
     expect(store().settings.start).toBe(480);
   });
 });
+
+describe("persistence", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("migrates a v1 save without losing days", () => {
+    const day = { tasks: [], blocks: [], carryOverHandled: true };
+    const v1 = { days: Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((d) => [`2026-09-2${d}`, day])), settings: { start: 480, end: 1260 } };
+    const v2 = migrate(v1, 1);
+    expect(Object.keys(v2.days)).toHaveLength(7);
+    expect(v2.days["2026-09-21"]).toEqual({ tasks: [], blocks: [], carryOverDone: true });
+  });
+
+  it("reports a full quota instead of throwing", () => {
+    vi.stubGlobal("localStorage", {
+      getItem: () => null,
+      removeItem: () => {},
+      setItem: () => {
+        throw new DOMException("full", "QuotaExceededError");
+      },
+    });
+    expect(() => guardedStorage().setItem("timebox", "{}")).not.toThrow();
+    expect(useStorageStatus.getState().full).toBe(true);
+  });
+});
+

@@ -8,12 +8,13 @@ import { useDayRollover } from "./hooks/use-day-rollover";
 import { useTheme } from "./hooks/use-theme";
 import { useFlash } from "./hooks/use-flash";
 import { formatDateKey } from "./domain/time";
-import { useDayStore } from "./store/day-store";
+import { useDayStore, useStorageStatus } from "./store/day-store";
 
 export function App() {
   const [pickedTaskId, setPickedTaskId] = useState<string | null>(null);
   const { message, flash } = useFlash();
   const today = useDayStore((s) => s.today);
+  const storageFull = useStorageStatus((s) => s.full);
   useDayRollover();
   useTheme();
 
@@ -38,6 +39,11 @@ export function App() {
           </div>
         </div>
       </header>
+      {storageFull && (
+        <p role="alert" className="border-b border-destructive/40 bg-destructive/10 px-gutter py-2 text-center text-sm text-destructive">
+          Storage is full, so recent changes aren't saved. Export a backup, then clear old data.
+        </p>
+      )}
       <main className="mx-auto grid max-w-6xl gap-6 px-gutter py-8 md:grid-cols-[22rem_1fr]">
         <h1 className="text-3xl font-semibold tracking-tight md:col-span-2">Today</h1>
         <CarryOver />

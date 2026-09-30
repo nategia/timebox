@@ -8,7 +8,7 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 
 ## Progress
 
-- [ ] T001: Store v2 (keep forever, migration)
+- [x] T001: Store v2 (keep forever, migration)
 - [ ] T002: Auto carry-over + Undo
 - [ ] T003: Browse past days (read-only)
 - [ ] T004: Backup export/import
@@ -17,13 +17,13 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 ---
 
 ### T001: Store v2 (keep forever, migration)
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** none
 - **Acceptance Criteria:**
-  - [ ] `pruneDays` / `DAYS_KEPT` removed; no day is ever deleted automatically
-  - [ ] `Day.carryOverHandled` → `carryOverDone`; `Task.movedTo?`, `Day.carriedIn?` added
-  - [ ] Persist `version: 2` with `migrate` from v1; test: a v1 save with 7 days loads intact
-  - [ ] A write that exceeds storage quota shows "Storage is full, export a backup" (no silent failure)
+  - [x] `pruneDays` / `DAYS_KEPT` removed; no day is ever deleted automatically
+  - [x] `Day.carryOverHandled` → `carryOverDone`; `Task.movedTo?`, `Day.carriedIn?` added
+  - [x] Persist `version: 2` with `migrate` from v1; test: a v1 save with 7 days loads intact
+  - [x] A write that exceeds storage quota shows "Storage is full, export a backup" (no silent failure)
 
 ### T002: Auto carry-over + Undo
 - **Status:** `[ ]`

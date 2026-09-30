@@ -9,14 +9,14 @@ export function CarryOver() {
   const days = useDayStore((s) => s.days);
   const todayKey = useDayStore((s) => s.today);
   const carryOver = useDayStore((s) => s.carryOver);
-  const { carryOverHandled } = useToday();
+  const { carryOverDone } = useToday();
   const previous = useMemo(
     () => previousUnfinished({ days, today: todayKey }),
     [days, todayKey],
   );
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
 
-  if (carryOverHandled || !previous) return null;
+  if (carryOverDone || !previous) return null;
 
   const toggle = (id: string) =>
     setSkipped((s) => {

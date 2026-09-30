@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { type StateStorage, createJSONStorage, persist } from "zustand/middleware";
 import { SLOT_MINUTES, localDateKey } from "@/domain/time";
 import type { Block, DayBounds, Task } from "@/domain/types";
 import { type Validation, validateBlock } from "@/domain/validate";
@@ -7,8 +7,10 @@ import { type Validation, validateBlock } from "@/domain/validate";
 export type Day = {
   tasks: Task[];
   blocks: Block[];
-  /** Carry-over prompt answered (either way) for this day. */
-  carryOverHandled: boolean;
+  /** Carry-over already ran (or was undone) for this day, so a reload never carries twice. */
+  carryOverDone: boolean;
+  /** What auto carry-over added to this day, for the notice and Undo. */
+  carriedIn?: { from: string; taskIds: string[] };
 };
 
 export type Settings = DayBounds;
@@ -42,27 +44,50 @@ type Actions = {
   carryOver: (taskIds: string[]) => void;
 };
 
-/** Older days are dropped so localStorage doesn't grow forever. */
-const DAYS_KEPT = 7;
-
 const DEFAULT_SETTINGS: Settings = { start: 8 * 60, end: 21 * 60 };
 
-const emptyDay = (): Day => ({ tasks: [], blocks: [], carryOverHandled: false });
+const emptyDay = (): Day => ({ tasks: [], blocks: [], carryOverDone: false });
 
 const newId = () => crypto.randomUUID();
 
 const OK: Validation = { ok: true };
 
-/** Keeps today plus the most recent earlier days, DAYS_KEPT in total. */
-const pruneDays = (days: Record<string, Day>, today: string) => {
-  // Other days sorted, not just earlier ones: if the clock or timezone moves back,
-  // a "future" day is still the user's latest plan and must survive.
-  const others = Object.keys(days)
-    .filter((k) => k !== today)
-    .sort()
-    .slice(-(DAYS_KEPT - 1));
-  const keys = days[today] ? [...others, today] : others;
-  return Object.fromEntries(keys.map((k) => [k, days[k]]));
+const PERSIST_VERSION = 2;
+
+type Persisted = Pick<State, "days" | "settings" | "theme">;
+
+/** v1 → v2: `carryOverHandled` renamed to `carryOverDone`. Days are kept forever from v2 on. */
+export function migrate(persisted: unknown, version: number): Persisted {
+  const state = persisted as Persisted;
+  if (version >= PERSIST_VERSION) return state;
+  const days = Object.fromEntries(
+    Object.entries(state.days ?? {}).map(([key, day]) => {
+      const { carryOverHandled, ...rest } = day as Day & { carryOverHandled?: boolean };
+      return [key, { ...rest, carryOverDone: carryOverHandled ?? false }];
+    }),
+  );
+  return { ...state, days };
+}
+
+/** Not persisted: a failed write can't be saved, and saving it would retry the write in a loop. */
+export const useStorageStatus = create<{ full: boolean }>(() => ({ full: false }));
+
+/** localStorage that reports a full quota instead of throwing into Zustand. */
+export const guardedStorage = (): StateStorage => {
+  // Throwing tells Zustand to skip persistence (e.g. in tests without localStorage).
+  if (typeof localStorage === "undefined") throw new Error("localStorage unavailable");
+  return {
+    getItem: (key) => localStorage.getItem(key),
+    removeItem: (key) => localStorage.removeItem(key),
+    setItem: (key, value) => {
+      try {
+        localStorage.setItem(key, value);
+        if (useStorageStatus.getState().full) useStorageStatus.setState({ full: false });
+      } catch {
+        useStorageStatus.setState({ full: true });
+      }
+    },
+  };
 };
 
 /** Most recent earlier day with unfinished tasks, for the carry-over prompt. */
@@ -106,8 +131,7 @@ export const useDayStore = create<State & Actions>()(
         theme: "system",
 
         syncToday: (now = new Date()) => {
-          const today = localDateKey(now);
-          set((s) => ({ today, days: pruneDays(s.days, today) }));
+          set({ today: localDateKey(now) });
         },
 
         addTask: (task) =>
@@ -213,14 +237,15 @@ export const useDayStore = create<State & Actions>()(
           const carried = (previous?.tasks ?? [])
             .filter((t) => taskIds.includes(t.id))
             .map((t) => ({ ...t, id: newId(), done: false }));
-          setDay((d) => ({ ...d, tasks: [...d.tasks, ...carried], carryOverHandled: true }));
+          setDay((d) => ({ ...d, tasks: [...d.tasks, ...carried], carryOverDone: true }));
         },
       };
     },
     {
       name: "timebox",
-      version: 1,
-      storage: createJSONStorage(() => localStorage),
+      version: PERSIST_VERSION,
+      migrate,
+      storage: createJSONStorage(guardedStorage),
       // Top-level fields merge over defaults, so older saves without `theme` load fine.
       partialize: ({ days, settings, theme }) => ({ days, settings, theme }),
     },

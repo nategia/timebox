@@ -20,6 +20,8 @@ export type Task = {
   /** Breaks are flexible and shrinkable by re-flow. */
   isBreak: boolean;
   done: boolean;
+  /** Set on the source day when auto carry-over copied this task into a later day. */
+  movedTo?: string;
 };
 
 /** A placed slot on today's timeline. Times are minutes since local midnight. */
