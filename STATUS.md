@@ -5,17 +5,17 @@ Timebox: free, shareable web app for timeboxing your day. Data stays in each vis
 ## Specs
 | # | Spec | Status | Plans |
 |---|---|---|---|
-| 001 | [Timebox](docs/specs/001-timebox/spec.md) | Approved v2 (2026-09-30) | [001 v1](docs/plans/001-timebox-v1/plan.md) (Approved; phase 1 merged, PR #3) · [002 history](docs/plans/002-history/plan.md) (Approved) |
+| 001 | [Timebox](docs/specs/001-timebox/spec.md) | Approved v2 (2026-09-30) | [001 v1](docs/plans/001-timebox-v1/plan.md) (Approved; phase 1 merged, PR #3) · [002 history](docs/plans/002-history/plan.md) (Done, PR #4) |
 
 ## Context
 - Idea vet 2026-09-30: Park as product; personal build approved. Addendum same day: **Go** as a free, non-commercial hosted web app (Vercel Hobby is non-commercial only). See `docs/idea-vet.md`.
 - Usage test (unchanged): used on 6 of 10 workdays, 5+ re-plans, 70%+ re-plans accepted.
 
 ## Now
-- Plan 002 (history, auto carry-over, backup): [tasks](docs/plans/002-history/tasks.md) (5 tasks + T002a, one PR). All done on `feat/002-history`; next: pre-merge flow, then plan 003.
+- Plan 002 merged (PR #4). Next: plan 003 (hosting + calendar share links; run the idea-vet spikes first) or the daily brief (queued).
 
 ## Roadmap
-1. Plan 002: past days, auto carry-over, backup.
+1. ~~Plan 002: past days, auto carry-over, backup.~~ Done (PR #4).
 2. Plan 003: hosting on Vercel + calendar share-link import (spikes in the idea-vet addendum first).
 3. Plan 001 phases 2–3: "Plan it for me" (owner-only access code) and live day.
 4. 10-workday usage test.
