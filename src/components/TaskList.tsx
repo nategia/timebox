@@ -193,6 +193,13 @@ function TaskRow({ task, index, count, start, picked, onPick, onEdit, onDragOver
   );
 }
 
+/** What happened to a task on a past day: its time if placed, else whether it got done or moved on. */
+const pastStatus = (task: Task, start: number | undefined) => {
+  if (task.movedTo) return `Moved to ${formatShortDateKey(task.movedTo)}`;
+  if (start !== undefined) return formatTime(start);
+  return task.done ? "Done" : "Not done";
+};
+
 /** A task on a past day: what happened to it, nothing editable. */
 function PastTaskRow({ task, index, start }: { task: Task; index: number; start: number | undefined }) {
   return (
@@ -215,7 +222,7 @@ function PastTaskRow({ task, index, start }: { task: Task; index: number; start:
       <span className={cn("h-2 w-2 shrink-0 rounded-full", KIND_BG[task.kind])} aria-hidden />
       <span className={cn("min-w-0 flex-1 truncate", task.done && "line-through")}>{task.name}</span>
       <span className="shrink-0 text-xs text-muted-foreground">
-        {task.movedTo ? `Moved to ${formatShortDateKey(task.movedTo)}` : start !== undefined ? formatTime(start) : "Not done"}
+        {pastStatus(task, start)}
         {" · "}
         {formatDuration(task.minutes)}
       </span>
