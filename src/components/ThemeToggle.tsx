@@ -21,7 +21,7 @@ export function ThemeToggle() {
       onClick={() => setTheme(NEXT[theme])}
     >
       <Icon />
-      {LABEL[theme]}
+      <span className="hidden sm:inline">{LABEL[theme]}</span>
     </Button>
   );
 }

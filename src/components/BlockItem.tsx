@@ -116,7 +116,7 @@ export function BlockItem({
         <button
           type="button"
           aria-label={`Remove ${label} from timeline`}
-          className="ml-auto shrink-0 text-muted-foreground opacity-0 hover:text-foreground focus:opacity-100 group-hover:opacity-100"
+          className="ml-auto shrink-0 text-muted-foreground opacity-0 hover:text-foreground focus:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={onRemove}
         >

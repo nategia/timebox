@@ -1,7 +1,8 @@
-import { type DragEvent, type MouseEvent, useRef, useState } from "react";
+import { type DragEvent, type MouseEvent, useEffect, useRef, useState } from "react";
 import { SLOT_MINUTES, formatDuration, formatTime, parseTime } from "@/domain/time";
 import { KIND_LABEL, KINDS, type Block, type Kind, type Task } from "@/domain/types";
 import { useFlash } from "@/hooks/use-flash";
+import { useNow } from "@/hooks/use-now";
 import { useDayStore, useIsPastView, useViewedDay } from "@/store/day-store";
 import { cn } from "@/lib/utils";
 import { BlockItem } from "./BlockItem";
@@ -24,6 +25,18 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
   const { placeTask, moveBlock, resizeBlock, removeBlock } = useDayStore.getState();
   const { message, flash } = useFlash();
   const grid = useRef<HTMLDivElement>(null);
+  const scroller = useRef<HTMLDivElement>(null);
+  const now = useNow();
+  const showNow = !readOnly && now >= dayStart && now <= dayEnd;
+
+  // Open at the current time: scroll so "now" sits a third of the way down. Earlier hours stay a scroll away.
+  useEffect(() => {
+    const box = scroller.current;
+    if (!box || readOnly) return;
+    const minute = Math.min(Math.max(new Date().getHours() * 60 + new Date().getMinutes(), dayStart), dayEnd);
+    const y = ((minute - dayStart) / (dayEnd - dayStart)) * (grid.current?.clientHeight ?? 0);
+    box.scrollTop = Math.max(0, y - box.clientHeight / 3);
+  }, [readOnly, dayStart, dayEnd]);
 
   const total = dayEnd - dayStart;
   const pxPerMinute = () => (grid.current?.clientHeight ?? total) / total;
@@ -95,6 +108,8 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
         {message}
       </p>
 
+      {/* Its own scroll area, so jumping to "now" never scrolls the task list away. */}
+      <div ref={scroller} className="max-h-[calc(100dvh-12rem)] min-h-64 overflow-y-auto pt-2">
       <div
         ref={grid}
         className={cn("relative select-none border-t", picked && "cursor-copy")}
@@ -127,6 +142,17 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
             onRejected={flash}
           />
         ))}
+        {showNow && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 z-20 flex items-center"
+            style={{ top: `calc(var(--slot-height) * ${(now - dayStart) / SLOT_MINUTES})` }}
+          >
+            <span className="-ml-0.5 h-2 w-2 rounded-full bg-destructive" />
+            <span className="h-px flex-1 bg-destructive" />
+          </div>
+        )}
+      </div>
       </div>
     </section>
   );

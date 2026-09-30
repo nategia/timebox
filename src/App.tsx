@@ -37,11 +37,11 @@ export function App() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-gutter text-sm">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-gutter text-sm sm:gap-3">
           <span className="font-semibold tracking-tight">Timebox</span>
-          <span className="text-muted-foreground">/</span>
+          <span className="hidden text-muted-foreground sm:inline">/</span>
           <DayNav />
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-1 sm:gap-3">
             {message && <p role="status" className="text-destructive">{message}</p>}
             <DaySettings onRejected={flash} />
             <ThemeToggle />
@@ -54,9 +54,16 @@ export function App() {
         </p>
       )}
       <main className="mx-auto grid max-w-6xl gap-6 px-gutter py-8 md:grid-cols-[22rem_1fr]">
-        <h1 className="text-3xl font-semibold tracking-tight md:col-span-2">
-          {isPast && viewDate ? formatDateKey(viewDate) : "Today"}
-        </h1>
+        <div className="flex flex-col gap-1 md:col-span-2">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {isPast && viewDate ? formatDateKey(viewDate) : "Today"}
+          </h1>
+          {!isPast && (
+            <p className="text-sm text-muted-foreground">
+              Plan your day in time blocks. Free, no account, and everything stays in your browser.
+            </p>
+          )}
+        </div>
         {!isPast && <CarryOver />}
         <TaskList pickedTaskId={pickedTaskId} onPick={setPickedTaskId} />
         <Timeline pickedTaskId={pickedTaskId} onPlaced={() => setPickedTaskId(null)} />
