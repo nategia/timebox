@@ -38,6 +38,13 @@ for (const link of links) {
   const res = await fetch(url, { redirect: "follow" });
   const text = await res.text();
   console.log(`\n== ${link.name}: HTTP ${res.status}, ${Math.round(text.length / 1024)} KB, host ${new URL(res.url).host}`);
+  // Only count inside VEVENTs: VTIMEZONE blocks carry their own RRULEs.
+  const events = text.split(/^BEGIN:VEVENT/m).slice(1).map((e) => e.split(/^END:VEVENT/m)[0]).join("\n");
+  const count = (re: RegExp) => (re.source === "^BEGIN:VEVENT" ? text : events).match(re)?.length ?? 0;
+  console.log(
+    `  file holds ${count(/^BEGIN:VEVENT/gm)} events: ${count(/^RRULE:/gm)} repeating, ` +
+      `${count(/^RECURRENCE-ID/gm)} moved/cancelled instances, ${count(/^DTSTART;VALUE=DATE:/gm)} all-day`,
+  );
   for (const date of [keyOf(today), keyOf(tomorrow)]) {
     const t0 = performance.now();
     let day;
