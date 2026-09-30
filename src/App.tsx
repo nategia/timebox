@@ -5,10 +5,13 @@ import { TaskList } from "./components/TaskList";
 import { Timeline } from "./components/Timeline";
 import { useDayRollover } from "./hooks/use-day-rollover";
 import { useFlash } from "./hooks/use-flash";
+import { formatDateKey } from "./domain/time";
+import { useDayStore } from "./store/day-store";
 
 export function App() {
   const [pickedTaskId, setPickedTaskId] = useState<string | null>(null);
   const { message, flash } = useFlash();
+  const today = useDayStore((s) => s.today);
   useDayRollover();
 
   useEffect(() => {
@@ -19,15 +22,24 @@ export function App() {
   }, [pickedTaskId]);
 
   return (
-    <main className="mx-auto grid max-w-5xl gap-6 px-gutter py-6 md:grid-cols-[22rem_1fr]">
-      <header className="flex items-center gap-3 md:col-span-2">
-        <h1 className="font-serif text-2xl">Today</h1>
-        <DaySettings onRejected={flash} />
-        {message && <p role="status" className="text-sm text-destructive">{message}</p>}
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-gutter text-sm">
+          <span className="font-semibold tracking-tight">Timebox</span>
+          <span className="text-muted-foreground">/</span>
+          <span className="text-muted-foreground">{formatDateKey(today)}</span>
+          <div className="ml-auto flex items-center gap-3">
+            {message && <p role="status" className="text-destructive">{message}</p>}
+            <DaySettings onRejected={flash} />
+          </div>
+        </div>
       </header>
-      <CarryOver />
-      <TaskList pickedTaskId={pickedTaskId} onPick={setPickedTaskId} />
-      <Timeline pickedTaskId={pickedTaskId} onPlaced={() => setPickedTaskId(null)} />
-    </main>
+      <main className="mx-auto grid max-w-6xl gap-6 px-gutter py-8 md:grid-cols-[22rem_1fr]">
+        <h1 className="text-3xl font-semibold tracking-tight md:col-span-2">Today</h1>
+        <CarryOver />
+        <TaskList pickedTaskId={pickedTaskId} onPick={setPickedTaskId} />
+        <Timeline pickedTaskId={pickedTaskId} onPlaced={() => setPickedTaskId(null)} />
+      </main>
+    </div>
   );
 }

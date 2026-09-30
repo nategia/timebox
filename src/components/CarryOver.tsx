@@ -27,7 +27,7 @@ export function CarryOver() {
     });
 
   return (
-    <section className="rounded-md border border-primary bg-primary/10 p-3 text-sm md:col-span-2" aria-label="Carry over">
+    <section className="rounded-lg border bg-card p-4 text-sm md:col-span-2" aria-label="Carry over">
       <p className="mb-2">
         {previous.tasks.length} unfinished from {previous.date}. Bring them into today?
       </p>

@@ -1,37 +1,40 @@
 /*
  * The only place for colours, fonts, spacing and radii.
+ * Vercel-style: black, near-white text, hairline grey borders, white primary.
  * Semantic names follow shadcn (background, primary, muted…) so its components
  * pick up this palette. Colours are RGB channels so Tailwind can apply opacity.
+ * Dark only, on purpose.
  */
 :root {
-  --background: 245 244 238;
-  --foreground: 40 38 34;
-  --card: 255 255 255;
-  --card-foreground: 40 38 34;
-  --popover: 255 255 255;
-  --popover-foreground: 40 38 34;
-  --primary: 201 100 66;
-  --primary-foreground: 255 255 255;
-  --secondary: 236 233 224;
-  --secondary-foreground: 40 38 34;
-  --muted: 236 233 224;
-  --muted-foreground: 120 115 105;
-  --accent: 236 233 224;
-  --accent-foreground: 40 38 34;
-  --destructive: 180 60 50;
-  --destructive-foreground: 255 255 255;
-  --border: 226 223 213;
-  --input: 226 223 213;
-  --ring: 201 100 66;
+  color-scheme: dark;
+
+  --background: 0 0 0;
+  --foreground: 237 237 237;
+  --card: 10 10 10;
+  --card-foreground: 237 237 237;
+  --popover: 10 10 10;
+  --popover-foreground: 237 237 237;
+  --primary: 237 237 237;
+  --primary-foreground: 0 0 0;
+  --secondary: 26 26 26;
+  --secondary-foreground: 237 237 237;
+  --muted: 26 26 26;
+  --muted-foreground: 161 161 161;
+  --accent: 31 31 31;
+  --accent-foreground: 237 237 237;
+  --destructive: 255 97 102;
+  --destructive-foreground: 0 0 0;
+  --border: 38 38 38;
+  --input: 46 46 46;
+  --ring: 82 168 255;
 
   /* Block kinds */
-  --kind-deep: 201 100 66;
-  --kind-body: 110 145 105;
-  --kind-light: 150 140 190;
-  --kind-fixed: 120 125 135;
+  --kind-deep: 82 168 255;
+  --kind-body: 98 199 124;
+  --kind-light: 255 178 36;
+  --kind-fixed: 143 143 143;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   --radius: 8px;
 
@@ -39,33 +42,4 @@
 
   /* Timeline: height of one 5-minute slot (1 hour = 12 slots) */
   --slot-height: 6px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 30 29 27;
-    --foreground: 236 233 225;
-    --card: 40 39 36;
-    --card-foreground: 236 233 225;
-    --popover: 40 39 36;
-    --popover-foreground: 236 233 225;
-    --primary: 218 125 92;
-    --primary-foreground: 30 29 27;
-    --secondary: 52 50 46;
-    --secondary-foreground: 236 233 225;
-    --muted: 52 50 46;
-    --muted-foreground: 160 155 145;
-    --accent: 52 50 46;
-    --accent-foreground: 236 233 225;
-    --destructive: 230 110 95;
-    --destructive-foreground: 30 29 27;
-    --border: 62 60 56;
-    --input: 62 60 56;
-    --ring: 218 125 92;
-
-    --kind-deep: 218 125 92;
-    --kind-body: 140 175 130;
-    --kind-light: 170 160 210;
-    --kind-fixed: 140 145 155;
-  }
 }

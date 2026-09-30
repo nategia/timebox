@@ -64,7 +64,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
   for (let m = Math.ceil(dayStart / 60) * 60; m < dayEnd; m += 60) hours.push(m);
 
   return (
-    <section className="flex flex-col gap-3" aria-label="Timeline">
+    <section className="flex flex-col gap-3 rounded-lg border bg-card p-4" aria-label="Timeline">
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         {KINDS.map((k) => (
           <span key={k} className="flex items-center gap-1">
@@ -106,7 +106,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
             className="pointer-events-none absolute inset-x-0 border-t border-border/70"
             style={{ top: `calc(var(--slot-height) * ${(m - dayStart) / SLOT_MINUTES})` }}
           >
-            <span className="absolute -top-2 left-0 bg-background pr-1 text-xs text-muted-foreground">{formatTime(m)}</span>
+            <span className="absolute -top-2 left-0 bg-card pr-1 text-xs text-muted-foreground">{formatTime(m)}</span>
           </div>
         ))}
         {blocks.map((block) => (
@@ -134,7 +134,7 @@ function PlacePicked({ task, dayStart, onPlace }: { task: Task; dayStart: number
   const start = parseTime(time);
   return (
     <form
-      className="flex items-center gap-2 rounded-sm border border-primary bg-primary/10 px-2 py-1.5 text-sm"
+      className="flex items-center gap-2 rounded-md border border-ring/50 bg-ring/10 px-2 py-1.5 text-sm"
       onSubmit={(e) => {
         e.preventDefault();
         if (start !== null) onPlace(start);

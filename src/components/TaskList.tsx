@@ -82,8 +82,8 @@ function TaskRow({ task, index, count, start, picked, onPick, onEdit }: RowProps
         e.dataTransfer.effectAllowed = "move";
       }}
       className={cn(
-        "group flex items-center gap-2 rounded-sm border bg-card px-2 py-1.5 text-sm",
-        picked && "border-primary ring-1 ring-ring",
+        "group flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm",
+        picked && "border-ring ring-1 ring-ring",
         task.done && "opacity-50",
       )}
     >

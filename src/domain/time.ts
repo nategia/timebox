@@ -32,6 +32,16 @@ export function formatDuration(minutes: number): string {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
+/** "2026-09-30" → "Wednesday, 30 September" in the user's locale. */
+export function formatDateKey(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
+
 /**
  * Local calendar date, e.g. "2026-09-30".
  * Not toISOString(): that is UTC and would file 00:30 in Rome under yesterday.

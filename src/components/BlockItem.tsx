@@ -87,7 +87,7 @@ export function BlockItem({
       aria-label={`${label}, ${formatTime(shown.start)} to ${formatTime(shown.start + shown.minutes)}`}
       title={label}
       className={cn(
-        "group absolute left-12 right-1 overflow-hidden rounded-sm border-l-4 px-2 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
+        "group absolute left-12 right-1 overflow-hidden rounded-sm border-l-2 px-2 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
         KIND_BLOCK[kind],
         draggable ? "cursor-grab touch-none" : "cursor-default",
         preview && "z-10 cursor-grabbing opacity-80 shadow",

@@ -18,7 +18,7 @@ type Props = {
 };
 
 /** Selected preset chip. */
-const chip = (active: boolean) => cn("h-7 px-2 font-normal", active && "border-primary bg-primary/10");
+const chip = (active: boolean) => cn("h-7 px-2 font-normal", active && "border-foreground/40 bg-accent text-foreground");
 
 const DEFAULT: NewTask = { name: "", minutes: 30, kind: "deep", fixed: false, isBreak: false };
 
@@ -43,7 +43,7 @@ export function TaskForm({ initial = DEFAULT, submitLabel, onSubmit, onPasteMany
   const settings = { minutes: task.minutes, kind: task.kind, fixed: task.fixed, isBreak: task.isBreak };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-2 rounded-md border bg-card p-3">
+    <form onSubmit={submit} className="flex flex-col gap-2 rounded-lg border bg-card p-4">
       <Input
         autoFocus={!!onCancel}
         placeholder="Task name, or paste a list"
