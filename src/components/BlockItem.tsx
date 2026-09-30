@@ -118,7 +118,8 @@ export function BlockItem({
           <X className="h-3 w-3" />
         </button>
       </div>
-      {draggable && (
+      {/* Short blocks would be all handle; they resize with Shift+↑/↓ instead. */}
+      {draggable && shown.minutes > 2 * SLOT_MINUTES && (
         <div
           aria-hidden
           className="absolute inset-x-0 bottom-0 h-1.5 cursor-ns-resize"
