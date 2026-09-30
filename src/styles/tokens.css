@@ -43,6 +43,13 @@
   --slot-height: 6px;
 }
 
+/* Phones: taller slots so blocks are big enough to tap. */
+@media (max-width: 639px) {
+  :root {
+    --slot-height: 8px;
+  }
+}
+
 .dark {
   color-scheme: dark;
 

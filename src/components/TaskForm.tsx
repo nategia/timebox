@@ -43,7 +43,7 @@ export function TaskForm({ initial = DEFAULT, submitLabel, onSubmit, onPasteMany
   const settings = { minutes: task.minutes, kind: task.kind, fixed: task.fixed, isBreak: task.isBreak };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-2 rounded-lg border bg-card p-4">
+    <form onSubmit={submit} className="flex flex-col gap-2 rounded-lg border bg-card p-3 sm:p-4">
       <Input
         autoFocus={!!onCancel}
         placeholder="Task name, or paste a list"

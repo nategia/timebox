@@ -60,7 +60,10 @@ export function TaskList({ pickedTaskId, onPick }: Props) {
         <>
         <p className="flex items-baseline justify-between px-1 text-xs text-muted-foreground">
           <span className="font-medium text-foreground">Priority</span>
-          <span>{readOnly ? "Read-only" : "Top is most important · drag to reorder"}</span>
+          <span>
+            {readOnly ? "Read-only" : "Top is most important"}
+            {!readOnly && <span className="hidden sm:inline"> · drag to reorder</span>}
+          </span>
         </p>
         <ol
           className="flex flex-col gap-1"
@@ -134,14 +137,15 @@ function TaskRow({ task, index, count, start, picked, onPick, onEdit, onDragOver
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
       className={cn(
-        "group flex items-center gap-2 rounded-md border bg-card py-2 pl-1 pr-3 text-sm",
+        "group flex items-center gap-2 rounded-md border bg-card py-2 pl-2 pr-2 text-sm sm:pl-1 sm:pr-3",
         picked && "border-ring ring-1 ring-ring",
         task.done && "opacity-50",
         dropEdge === "top" && "shadow-[inset_0_2px_0_0_rgb(var(--ring))]",
         dropEdge === "bottom" && "shadow-[inset_0_-2px_0_0_rgb(var(--ring))]",
       )}
     >
-      <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground/60" aria-hidden />
+      {/* Most phones can't drag list rows, so the grip only shows where it works; arrows reorder on phones. */}
+      <GripVertical className="hidden h-4 w-4 shrink-0 cursor-grab text-muted-foreground/60 sm:block" aria-hidden />
       <span
         className={cn(
           "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-medium tabular-nums",
@@ -160,22 +164,25 @@ function TaskRow({ task, index, count, start, picked, onPick, onEdit, onDragOver
         {task.done && <Check className="h-3 w-3" />}
       </button>
       <span className={cn("h-2 w-2 shrink-0 rounded-full", KIND_BG[task.kind])} aria-hidden />
-      <button
-        type="button"
-        className={cn("min-w-0 flex-1 truncate text-left", task.done && "line-through")}
-        title="Pick, then click a time on the timeline"
-        aria-pressed={picked}
-        onClick={onPick}
-      >
-        {task.name}
-      </button>
-      <span className="shrink-0 text-xs text-muted-foreground">
-        {start !== undefined && `${formatTime(start)} · `}
-        {formatDuration(task.minutes)}
-        {task.fixed && " · fixed"}
-        {task.isBreak && " · break"}
-      </span>
-      <div className="flex shrink-0 opacity-30 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+      {/* Phones: name on its own line, details underneath, so names aren't cut short. */}
+      <div className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-center sm:gap-2">
+        <button
+          type="button"
+          className={cn("min-w-0 truncate text-left sm:flex-1", task.done && "line-through")}
+          title="Pick, then click a time on the timeline"
+          aria-pressed={picked}
+          onClick={onPick}
+        >
+          {task.name}
+        </button>
+        <span className="shrink-0 text-xs text-muted-foreground">
+          {start !== undefined && `${formatTime(start)} · `}
+          {formatDuration(task.minutes)}
+          {task.fixed && " · fixed"}
+          {task.isBreak && " · break"}
+        </span>
+      </div>
+      <div className="flex shrink-0 opacity-30 transition-opacity focus-within:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-70">
         <Button type="button" variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7" aria-label="Higher priority" disabled={index === 0} onClick={() => moveTask(task.id, index - 1)}>
           <ArrowUp className="h-3.5 w-3.5" />
         </Button>

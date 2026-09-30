@@ -78,7 +78,7 @@ export function Timeline({ pickedTaskId, onPlaced }: Props) {
   for (let m = Math.ceil(dayStart / 60) * 60; m < dayEnd; m += 60) hours.push(m);
 
   return (
-    <section className="flex flex-col gap-3 rounded-lg border bg-card p-4" aria-label="Timeline">
+    <section className="flex flex-col gap-3 rounded-lg border bg-card p-3 sm:p-4" aria-label="Timeline">
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         {KINDS.map((k) => (
           <span key={k} className="flex items-center gap-1">
