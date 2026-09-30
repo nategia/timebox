@@ -6,6 +6,7 @@ import { useDayStore, useToday } from "@/store/day-store";
 import { cn } from "@/lib/utils";
 import { KIND_BG } from "./kind";
 import { TaskForm } from "./TaskForm";
+import { TASK_DRAG_TYPE } from "./Timeline";
 import { Button } from "./ui";
 
 type Props = {
@@ -75,6 +76,11 @@ function TaskRow({ task, index, count, start, picked, onPick, onEdit }: RowProps
 
   return (
     <li
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData(TASK_DRAG_TYPE, task.id);
+        e.dataTransfer.effectAllowed = "move";
+      }}
       className={cn(
         "group flex items-center gap-2 rounded-sm border bg-surface px-2 py-1.5 text-sm",
         picked && "border-accent ring-1 ring-accent",

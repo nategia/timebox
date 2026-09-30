@@ -68,8 +68,8 @@ export function TaskForm({ initial = DEFAULT, submitLabel, onSubmit, onPasteMany
           step={5}
           aria-label="Custom length in minutes"
           className="w-16 py-0.5"
-          value={task.minutes}
-          onChange={(e) => set({ minutes: Number(e.target.value) })}
+          value={task.minutes || ""}
+          onChange={(e) => set({ minutes: e.target.valueAsNumber || 0 })}
         />
       </div>
       <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Kind">
