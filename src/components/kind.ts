@@ -9,8 +9,8 @@ export const KIND_BG: Record<Kind | "fixed", string> = {
 };
 
 export const KIND_BLOCK: Record<Kind | "fixed", string> = {
-  deep: "bg-deep/15 border-deep text-ink",
-  body: "bg-body/15 border-body text-ink",
-  light: "bg-light/15 border-light text-ink",
-  fixed: "bg-fixed/15 border-fixed text-ink",
+  deep: "bg-deep/15 border-deep text-foreground",
+  body: "bg-body/15 border-body text-foreground",
+  light: "bg-light/15 border-light text-foreground",
+  fixed: "bg-fixed/15 border-fixed text-foreground",
 };
