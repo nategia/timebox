@@ -10,7 +10,8 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
 
 - [x] T001: Spike: fetch + expand your real calendars (partial pass; real-recurrence check moved to T004)
 - [x] T002: `/api/calendar` function, guards, dev middleware
-- [ ] T003: Store v3 (`calendars`, `externalBlocks`) + backups
+- [x] T003: Store v3 (`calendars`, `externalBlocks`) + backups
+- [x] T003a: Automatic safety copy + restore (added 2026-09-30 after unexplained lost tasks)
 - [ ] T004: Calendar settings, live events on the timeline
 - [ ] T005: Vercel config, headers, README, first deploy
 
@@ -36,14 +37,23 @@ Every task also needs: `npm run typecheck`, `npm run lint`, `npm test` pass.
   - [x] Tests: allowlist, redirect to disallowed host, oversize, timeout, bad body
 
 ### T003: Store v3 (`calendars`, `externalBlocks`) + backups
-- **Status:** `[ ]`
+- **Status:** `[x]`
 - **Dependencies:** none
 - **Acceptance Criteria:**
-  - [ ] Persist v3 + `migrate` (v2 → `calendars: []`); v1 → v3 still works
-  - [ ] `addCalendar(name, url)` (client-side link check), `removeCalendar(id)`
-  - [ ] `externalBlocks` (not persisted); `commitBlock` validates against day blocks + external
-  - [ ] Backup accepts optional `calendars` (validated); export includes them; confirm text mentions private links
-  - [ ] Tests: migration, placing onto a meeting rejected, backup with/without calendars
+  - [x] Persist v3 + `migrate` (v2 → `calendars: []`); v1 → v3 still works
+  - [x] `addCalendar(name, url)` (client-side link check), `removeCalendar(id)`
+  - [x] `externalBlocks` (not persisted); `commitBlock` validates against day blocks + external
+  - [x] Backup accepts optional `calendars` (validated); export includes them; confirm text mentions private links
+  - [x] Tests: migration, placing onto a meeting rejected, backup with/without calendars
+
+### T003a: Automatic safety copy + restore
+- **Status:** `[x]`
+- **Dependencies:** T003 (added mid-plan: tasks in the dev tab went from 5 to 0; not reproducible, cause unknown)
+- **Acceptance Criteria:**
+  - [x] One safety copy (backup format) before the first save of each day and before any save dropping 3+ tasks/calendars
+  - [x] Best-effort: skipped if storage is tight, never blocks the real save
+  - [x] "Restore safety copy" in Your data, same validation and confirm as importing
+  - [x] Test: once per day for small changes, fresh copy on a big drop
 
 ### T004: Calendar settings, live events on the timeline
 - **Status:** `[ ]`

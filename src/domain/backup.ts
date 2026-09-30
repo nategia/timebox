@@ -1,7 +1,9 @@
 import { SLOT_MINUTES, isSlotMultiple } from "./time";
-import { type Block, type Day, type DayBounds, type Days, KINDS, type Task, type Theme, THEMES } from "./types";
+import { checkLinkShape } from "./calendar-link";
+import { type Block, type Calendar, type Day, type DayBounds, type Days, KINDS, type Task, type Theme, THEMES } from "./types";
 
-export type BackupData = { days: Days; settings: DayBounds; theme: Theme };
+/** `calendars` holds private share links: the export note and import confirm say so. */
+export type BackupData = { days: Days; settings: DayBounds; theme: Theme; calendars?: Calendar[] };
 
 type BackupFile = { app: "timebox"; version: number; exportedAt: string; data: BackupData };
 
@@ -64,6 +66,10 @@ function isDay(v: unknown): v is Day {
   );
 }
 
+/** A calendar entry is only accepted if its link would pass the same check as adding it by hand. */
+const isCalendar = (v: unknown): v is Calendar =>
+  isRecord(v) && isString(v.id) && isString(v.name) && isString(v.url) && checkLinkShape(v.url) === null;
+
 const isSettings = (v: unknown): v is DayBounds =>
   isRecord(v) &&
   isNumber(v.start) &&
@@ -101,10 +107,14 @@ export function parseBackup(
   const badKey = Object.entries(data.days).find(([key, day]) => !DATE_KEY.test(key) || !isDay(day));
   if (badKey) return { ok: false, reason: `The backup is damaged: day ${badKey[0]} can't be read.` };
 
+  if (data.calendars !== undefined && !(Array.isArray(data.calendars) && data.calendars.every(isCalendar))) {
+    return { ok: false, reason: "The backup is damaged: its calendar links can't be read." };
+  }
+
   const theme = THEMES.includes(data.theme as Theme) ? (data.theme as Theme) : "system";
   return {
     ok: true,
-    data: { days: data.days as Days, settings: data.settings, theme },
+    data: { days: data.days as Days, settings: data.settings, theme, calendars: data.calendars as Calendar[] | undefined },
     exportedAt: isString(file.exportedAt) ? file.exportedAt : "",
     dayCount: Object.keys(data.days).length,
   };

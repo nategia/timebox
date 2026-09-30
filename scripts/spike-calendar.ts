@@ -6,6 +6,7 @@
  */
 import { readFileSync } from "node:fs";
 import { CalendarError, checkLinkShape, expandDay } from "../server/calendar";
+import { LINK_HINT } from "../src/domain/calendar-link";
 
 type Link = { name: string; url: string };
 
@@ -18,11 +19,7 @@ const keyOf = (d: Date) =>
 const today = new Date();
 const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
-const HINT: Record<string, string> = {
-  calendar_page_link: "That's the Google Calendar page address. Use Settings → your calendar → Integrate calendar → 'Secret address in iCal format'.",
-  not_a_calendar_link: "Not a Google iCal or iCloud published-calendar link.",
-  not_a_calendar: "The link didn't return a calendar file (often a sign-in page).",
-};
+const HINT = LINK_HINT;
 
 for (const link of links) {
   if (link.url.startsWith("PASTE_")) {

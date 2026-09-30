@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { guardedStorage, migrate, useDayStore, useStorageStatus } from "./day-store";
+import { SNAPSHOT_KEY, guardedStorage, migrate, useDayStore, useStorageStatus } from "./day-store";
 
 const task = { name: "Write", minutes: 30, kind: "deep", fixed: false, isBreak: false } as const;
 
@@ -7,7 +7,7 @@ const store = () => useDayStore.getState();
 const today = () => store().days[store().today];
 
 beforeEach(() => {
-  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 }, viewDate: null });
+  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 }, viewDate: null, calendars: [], externalBlocks: [] });
   store().syncToday(new Date(2026, 8, 30, 9));
 });
 
@@ -76,6 +76,33 @@ describe("day store", () => {
     expect(writes).toBe(0);
   });
 
+  it("adds calendars only with a real share link, once", () => {
+    expect(store().addCalendar("Work", "https://calendar.google.com/calendar/u/1?cid=x")).toEqual({
+      ok: false,
+      problem: "calendar_page_link",
+    });
+    const link = "webcal://p52-caldav.icloud.com/published/2/abc";
+    expect(store().addCalendar("Home", link).ok).toBe(true);
+    expect(store().addCalendar("Again", link)).toEqual({ ok: false, problem: "duplicate" });
+    const [cal] = store().calendars;
+    store().removeCalendar(cal.id);
+    expect(store().calendars).toEqual([]);
+  });
+
+  it("won't place a task on top of a meeting from a calendar", () => {
+    store().setExternalBlocks([{ id: "m", source: "event", title: "Standup", start: 600, minutes: 30, fixed: true }]);
+    store().addTask(task);
+    expect(store().placeTask(today().tasks[0].id, 600)).toEqual({ ok: false, reason: "Overlaps another block" });
+    expect(store().placeTask(today().tasks[0].id, 630).ok).toBe(true);
+    expect(today().blocks).toHaveLength(1);
+  });
+
+  it("an older backup without calendars keeps the ones already added", () => {
+    store().addCalendar("Home", "https://p52-caldav.icloud.com/published/2/abc");
+    store().importAll({ days: {}, settings: { start: 480, end: 1260 }, theme: "dark" });
+    expect(store().calendars).toHaveLength(1);
+  });
+
   it("keeps every day", () => {
     for (let d = 1; d <= 10; d++) {
       store().syncToday(new Date(2026, 9, d, 9));
@@ -104,9 +131,17 @@ describe("persistence", () => {
   it("migrates a v1 save without losing days", () => {
     const day = { tasks: [], blocks: [], carryOverHandled: true };
     const v1 = { days: Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((d) => [`2026-09-2${d}`, day])), settings: { start: 480, end: 1260 } };
-    const v2 = migrate(v1, 1);
-    expect(Object.keys(v2.days)).toHaveLength(7);
-    expect(v2.days["2026-09-21"]).toEqual({ tasks: [], blocks: [], carryOverDone: true });
+    const v3 = migrate(v1, 1);
+    expect(Object.keys(v3.days)).toHaveLength(7);
+    expect(v3.days["2026-09-21"]).toEqual({ tasks: [], blocks: [], carryOverDone: true });
+    expect(v3.calendars).toEqual([]);
+  });
+
+  it("migrates a v2 save by adding an empty calendar list", () => {
+    const v2 = { days: { "2026-09-30": { tasks: [], blocks: [], carryOverDone: true } }, settings: { start: 480, end: 1260 }, theme: "dark" };
+    const v3 = migrate(v2, 2);
+    expect(v3.calendars).toEqual([]);
+    expect(v3.days).toEqual(v2.days);
   });
 
   it("reports a full quota instead of throwing", () => {
@@ -120,5 +155,29 @@ describe("persistence", () => {
     expect(() => guardedStorage().setItem("timebox", "{}")).not.toThrow();
     expect(useStorageStatus.getState().full).toBe(true);
   });
+
+  it("keeps a safety copy before a save that drops several tasks", () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (k: string) => store.get(k) ?? null,
+      removeItem: (k: string) => store.delete(k),
+      setItem: (k: string, v: string) => store.set(k, v),
+    });
+    const blob = (names: string[]) =>
+      JSON.stringify({ state: { days: { "2026-09-30": { tasks: names.map((name) => ({ name })) } } }, version: 3 });
+    const storage = guardedStorage();
+    storage.setItem("timebox", blob(["a", "b", "c", "d", "e"]));
+    expect(store.has(SNAPSHOT_KEY)).toBe(false);
+    storage.setItem("timebox", blob(["a", "b", "c", "d", "e", "f"]));
+    const firstCopy = store.get(SNAPSHOT_KEY);
+    expect(firstCopy).toContain('"app":"timebox"');
+    storage.setItem("timebox", blob(["a", "b", "c", "d", "e", "f", "g"]));
+    expect(store.get(SNAPSHOT_KEY)).toBe(firstCopy); // once per day for small changes
+    storage.setItem("timebox", blob([]));
+    expect(countTasks(store.get(SNAPSHOT_KEY)!)).toBe(7); // big drop → copy of the 7-task save
+  });
 });
+
+const countTasks = (backup: string) =>
+  (JSON.parse(backup).data.days["2026-09-30"].tasks as unknown[]).length;
 

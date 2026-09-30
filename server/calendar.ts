@@ -1,4 +1,7 @@
 import ICAL from "ical.js";
+import { checkLinkShape, isAllowedHost, normalizeLink } from "../src/domain/calendar-link";
+
+export { checkLinkShape };
 
 export type CalendarEvent = { title: string; start: string; end: string };
 
@@ -17,31 +20,6 @@ export class CalendarError extends Error {
   }
 }
 
-const GOOGLE_HOST = "calendar.google.com";
-const ICLOUD_HOST = /^p\d+-caldav\.icloud\.com$/;
-
-/** Only these hosts are ever fetched, including after redirects (keeps the function from being an open proxy). */
-const isAllowedHost = (url: URL) =>
-  url.protocol === "https:" && (url.hostname === GOOGLE_HOST || ICLOUD_HOST.test(url.hostname));
-
-/**
- * Recognises the one mistake almost everyone makes first: copying the Google Calendar page's
- * address (calendar.google.com/calendar/u/1?…) instead of the iCal link (…/calendar/ical/…/basic.ics).
- */
-export function checkLinkShape(raw: string): CalendarErrorCode | null {
-  let url: URL;
-  try {
-    url = new URL(raw.trim().replace(/^webcal:/i, "https:"));
-  } catch {
-    return "not_a_calendar_link";
-  }
-  if (url.protocol !== "https:") return "not_a_calendar_link";
-  if (url.hostname === GOOGLE_HOST) {
-    return /^\/calendar\/ical\/[^/]+\/(private-[^/]+|public)\/basic\.ics$/.test(url.pathname) ? null : "calendar_page_link";
-  }
-  if (ICLOUD_HOST.test(url.hostname)) return url.pathname.startsWith("/published/") ? null : "not_a_calendar_link";
-  return "not_a_calendar_link";
-}
 export type CalendarDay = { events: CalendarEvent[]; allDay: string[] };
 
 /** Stops a pathological RRULE (e.g. every minute since 1970) from spinning the function. */
@@ -216,7 +194,7 @@ async function readCapped(res: Response): Promise<string> {
 export async function fetchIcs(link: string): Promise<string> {
   const shape = checkLinkShape(link);
   if (shape) throw new CalendarError(shape);
-  let url = new URL(link.trim().replace(/^webcal:/i, "https:"));
+  let url = new URL(normalizeLink(link));
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
     let res: Response;
