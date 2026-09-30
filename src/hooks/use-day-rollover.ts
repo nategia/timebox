@@ -1,14 +1,36 @@
 import { useEffect } from "react";
-import { useDayStore } from "@/store/day-store";
+import { useDayStore, useStorageStatus } from "@/store/day-store";
 
-/** Re-checks the date on load and on tab focus, so a tab left open overnight starts a new day. */
+const STORAGE_KEY = "timebox";
+
+/**
+ * Keeps this tab in step with saved data and the calendar date.
+ * - On focus: reload what's saved first (another tab may have written), then roll the date over.
+ *   Without the reload, a tab left open overnight would save its stale copy over everything.
+ * - When another tab saves: reload, so this tab never edits an old copy.
+ */
 export function useDayRollover() {
   const syncToday = useDayStore((s) => s.syncToday);
 
   useEffect(() => {
-    syncToday();
-    const onVisible = () => document.visibilityState === "visible" && syncToday();
+    // When storage is full, memory holds changes that couldn't be saved; reloading would lose them.
+    const reload = async () => {
+      if (!useStorageStatus.getState().full) await useDayStore.persist.rehydrate();
+    };
+    const refresh = async () => {
+      await reload();
+      syncToday();
+    };
+    void refresh();
+
+    const onVisible = () => document.visibilityState === "visible" && void refresh();
+    const onStorage = (e: StorageEvent) => e.key === STORAGE_KEY && void reload();
+
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("storage", onStorage);
+    };
   }, [syncToday]);
 }

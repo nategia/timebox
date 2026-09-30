@@ -95,3 +95,71 @@ First thing to break: Google's 100-user cap, then Supabase free tier pausing.
 - https://toggl.com/blog/timeboxing-apps
 - https://ellieplanner.com/comparisons/sunsama-vs-motion
 - https://medium.com/@molased/i-went-through-200-reddit-posts-complains-about-time-blocking-summarized-them-with-actual-quotes-e3b2affd9dfe
+
+---
+
+# Addendum 2026-09-30: hosted, shareable web app
+
+**Verdict: Go, as a free non-commercial web app.** Personal-build approval extends to a free public link. Product/paywall stays **Park** (unchanged kill lines). Two spec changes required (history durability, recurring events), listed below.
+
+## TL;DR
+- Vercel Hobby allows it only while it stays **non-commercial**: any payment request, ads or selling needs Pro ($20/user/month). A future paywall moves hosting onto Pro. [Vercel fair use](https://vercel.com/docs/limits/fair-use-guidelines#commercial-usage)
+- "Keep history forever" in the browser is **not true on Safari**: script-writable storage (localStorage, IndexedDB) is deleted after 7 days of Safari use without visiting the site, unless the app is added to the Home Screen/Dock. Needs an export/import backup and a persistence request. [WebKit tracking prevention](https://webkit.org/tracking-prevention/)
+- Calendar links work server-side (Google secret iCal; iCloud `webcal://pNN-caldav.icloud.com/published/...` fetched as `https://`), but feeds contain **recurring events** (RRULE) and time zones that must be expanded correctly; that's the real build risk, not access. [Google help](https://support.google.com/calendar/answer/37648?hl=en), [iCloud link format](https://nocal.app/help/apple-calendar/get-public-icloud-link)
+
+## What changed
+Free public link on Vercel. No accounts; each visitor's data in their own browser. Calendar import via share links fetched by a server function. AI planning owner-only via an access code; Claude key server-side.
+
+## Dependencies (new)
+| Dependency | What we need | Status | Source |
+|---|---|---|---|
+| Vercel Hobby | static site + 2 functions (calendar fetch, plan) | 1M invocations, 4 active CPU-hrs, 100 GB transfer / month; over limit = feature paused up to 30 days; non-commercial only | [Hobby plan](https://vercel.com/docs/plans/hobby) |
+| Google secret iCal | read-only .ics of one calendar | fetchable by any HTTP client; Workspace admins may disable it; user can reset the address | [Google help](https://support.google.com/calendar/answer/37648?hl=en) |
+| iCloud public calendar | read-only .ics | `webcal://` → `https://` returns raw .ics; anyone with the link can read; refresh not instant (lag UNVERIFIED) | [nocal guide](https://nocal.app/help/apple-calendar/get-public-icloud-link), [Apple support](https://support.apple.com/guide/iphone/share-icloud-calendars-iph7613c4fb/ios) |
+| Browser storage | days kept "forever" | Safari: deleted after 7 days without interaction (Home Screen web apps exempt); Chrome: evictable under storage pressure unless persisted | [WebKit](https://webkit.org/tracking-prevention/), [WebKit storage policy](https://webkit.org/blog/14403/updates-to-storage-policy/) |
+
+## Kill checks
+| Check | Result | Evidence |
+|---|---|---|
+| Access | pass | No platform approval needed: share links are public URLs; no OAuth, no Google verification. |
+| Terms & money | pass while free; **risk** for paywall | Hobby = non-commercial; donations allowed; payments/ads need Pro. |
+| Runtime reality | **risk** | Safari 7-day storage deletion breaks "history forever" for non-daily Safari users; background tab timers throttled (already known, phase 3). |
+| Capability | pass with work | .ics feeds include recurring rules and time zones; must expand to "today's events" correctly (library, not hand-rolled). Workspace accounts may have the secret address turned off. |
+
+## Abuse and privacy (new surface)
+- **Calendar fetch as an open proxy (SSRF):** a public function that fetches any URL can be used to hit internal or third-party hosts. Mitigation: allow only `https` (convert `webcal`) to `calendar.google.com` and `pNN-caldav.icloud.com`, no redirects to other hosts, short timeout, response size cap, GET only.
+- **Other people's calendar links:** they pass through the function on each refresh. Mitigation: never log URLs, query strings or bodies (FR-022); no server storage; POST the link in the body, not the query string, so it never lands in access logs. Vercel runtime logs on Hobby keep 1 hour. [Hobby plan](https://vercel.com/docs/plans/hobby)
+- **Access code brute force / Claude cost:** without a database, per-IP rate limiting in a function is per-instance and weak. Mitigation: long random code (32+ chars) so guessing is infeasible, constant-time compare, plus a hard monthly spend limit on the Anthropic key. Vercel WAF custom rules (3 on Hobby) can add a rate limit on `/api/plan`. Per-call cost: measure in spike 3 (UNVERIFIED).
+- **Function quota as a DoS lever:** a visitor spamming refresh could burn the 1M invocations and pause the app for everyone. Low likelihood for a shared-with-friends link; refresh interval ≥ 5 min and a WAF rate rule cover it.
+
+## Assumptions and tests
+| # | Assumption | Test (who, how long) | Kill line |
+|---|---|---|---|
+| 1 | Recurring and all-day events from Google and iCloud expand correctly to today's blocks in Europe/Rome | Spike 1 with Nathaniel's real calendars, 2 h | any recurring meeting missing or at the wrong time after the fix attempt |
+| 2 | History survives normal use on Nathaniel's browser | Use daily for the 10-workday test; check day count after a weekend | any day lost without clearing data |
+| 3 | Sharing the link gets real use | Share with 5 people after phase 3 | fewer than 2 use it on 3+ days in 2 weeks (signal only, doesn't block the personal build) |
+
+Usage test and product kill lines from the original vet are **unchanged**. Hosting doesn't change them; it only makes the X waitlist test easier later.
+
+## Spikes before plan 003
+1. Vercel function fetches Nathaniel's Google secret iCal and an iCloud public link, expands today's events incl. one recurring and one all-day event → pass if all match the Calendar app, in local time.
+2. `navigator.storage.persist()` in Chrome and Safari, plus JSON export/import of all days → pass if export round-trips and Chrome reports persisted.
+3. One `/api/plan` call with a typical day → record tokens and cost; pass if under $0.05 per plan (UNVERIFIED target).
+
+## Required spec changes
+- FR-020 "kept indefinitely": add a one-click **export/import backup**, request persistent storage, and show a notice on Safari suggesting "Add to Dock/Home Screen" to keep history.
+- FR-012: note that recurring and all-day events must appear correctly; Workspace accounts may have secret links disabled (show a clear message).
+- New: calendar fetch only accepts Google and iCloud calendar hosts (already in edge cases) and links are sent in the request body.
+
+## Reasons not to
+- Scope creep before the usage test: history, calendars and hosting all land before "Plan it for me" and the live day, which are what the test measures. Mitigation: history (plan 002) is small; calendar/hosting (plan 003) goes after it but should not delay phase 2/3 more than one PR.
+- innrwork v1 TestFlight is still the main focus.
+
+## Sources
+- https://vercel.com/docs/plans/hobby
+- https://vercel.com/docs/limits/fair-use-guidelines
+- https://support.google.com/calendar/answer/37648?hl=en
+- https://nocal.app/help/apple-calendar/get-public-icloud-link
+- https://support.apple.com/guide/iphone/share-icloud-calendars-iph7613c4fb/ios
+- https://webkit.org/tracking-prevention/
+- https://webkit.org/blog/14403/updates-to-storage-policy/

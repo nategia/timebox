@@ -32,14 +32,25 @@ export function formatDuration(minutes: number): string {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
+const dateOf = (key: string) => {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d);
+};
+
 /** "2026-09-30" → "Wednesday, 30 September" in the user's locale. */
 export function formatDateKey(key: string): string {
+  return dateOf(key).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+}
+
+/** "2026-09-30" → "Wed 30 Sep" in the user's locale. */
+export function formatShortDateKey(key: string): string {
+  return dateOf(key).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+}
+
+/** "2026-09-30", -1 → "2026-09-29". Local date parts, so DST and UTC can't skip a day. */
+export function shiftDateKey(key: string, days: number): string {
   const [y, m, d] = key.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  return localDateKey(new Date(y, m - 1, d + days));
 }
 
 /**

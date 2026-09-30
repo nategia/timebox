@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { previousUnfinished, useDayStore } from "./day-store";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { guardedStorage, migrate, useDayStore, useStorageStatus } from "./day-store";
 
 const task = { name: "Write", minutes: 30, kind: "deep", fixed: false, isBreak: false } as const;
 
@@ -7,7 +7,7 @@ const store = () => useDayStore.getState();
 const today = () => store().days[store().today];
 
 beforeEach(() => {
-  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 } });
+  useDayStore.setState({ days: {}, settings: { start: 480, end: 1260 }, viewDate: null });
   store().syncToday(new Date(2026, 8, 30, 9));
 });
 
@@ -29,24 +29,60 @@ describe("day store", () => {
     expect(today().tasks[0].minutes).toBe(45);
   });
 
-  it("offers unfinished tasks from the previous day", () => {
+  it("carries unfinished tasks into the new day once, with undo", () => {
     store().addTask(task);
     store().addTask({ ...task, name: "Done one" });
     store().updateTask(today().tasks[1].id, { done: true });
     store().syncToday(new Date(2026, 9, 1, 8));
-    const previous = previousUnfinished(store());
-    expect(previous?.tasks.map((t) => t.name)).toEqual(["Write"]);
-    store().carryOver(previous!.tasks.map((t) => t.id));
     expect(today().tasks.map((t) => t.name)).toEqual(["Write"]);
-    expect(today().carryOverHandled).toBe(true);
+    store().syncToday(new Date(2026, 9, 1, 9));
+    expect(today().tasks).toHaveLength(1);
+    store().undoCarryOver();
+    expect(today().tasks).toHaveLength(0);
+    expect(store().days["2026-09-30"].tasks[0].movedTo).toBeUndefined();
   });
 
-  it("keeps only the last 7 days", () => {
+  it("browsing a past day never edits it", () => {
+    store().addTask(task);
+    store().syncToday(new Date(2026, 9, 1, 9));
+    store().setViewDate("2026-09-30");
+    expect(store().viewDate).toBe("2026-09-30");
+    store().addTask({ ...task, name: "New" });
+    expect(store().days["2026-10-01"].tasks.map((t) => t.name)).toContain("New");
+    expect(store().days["2026-09-30"].tasks.map((t) => t.name)).not.toContain("New");
+    store().setViewDate("2026-10-01");
+    expect(store().viewDate).toBeNull();
+  });
+
+  it("import replaces everything and returns to today", () => {
+    store().addTask(task);
+    store().setViewDate("2026-09-20");
+    store().importAll({
+      days: { "2026-09-01": { tasks: [], blocks: [], carryOverDone: true } },
+      settings: { start: 540, end: 1080 },
+      theme: "light",
+    });
+    expect(Object.keys(store().days).sort()).toEqual(["2026-09-01", "2026-09-30"]);
+    expect(today().tasks).toHaveLength(0);
+    expect(store().settings.start).toBe(540);
+    expect(store().viewDate).toBeNull();
+  });
+
+  it("syncToday doesn't write when nothing changed", () => {
+    let writes = 0;
+    const unsubscribe = useDayStore.subscribe(() => writes++);
+    store().syncToday(new Date(2026, 8, 30, 15));
+    unsubscribe();
+    expect(writes).toBe(0);
+  });
+
+  it("keeps every day", () => {
     for (let d = 1; d <= 10; d++) {
       store().syncToday(new Date(2026, 9, d, 9));
       store().addTask(task);
     }
-    expect(Object.keys(store().days)).toHaveLength(7);
+    // 10 October days plus the 30 September day created in beforeEach.
+    expect(Object.keys(store().days)).toHaveLength(11);
   });
 
   it("keeps a later day when the clock moves back", () => {
@@ -61,3 +97,28 @@ describe("day store", () => {
     expect(store().settings.start).toBe(480);
   });
 });
+
+describe("persistence", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("migrates a v1 save without losing days", () => {
+    const day = { tasks: [], blocks: [], carryOverHandled: true };
+    const v1 = { days: Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((d) => [`2026-09-2${d}`, day])), settings: { start: 480, end: 1260 } };
+    const v2 = migrate(v1, 1);
+    expect(Object.keys(v2.days)).toHaveLength(7);
+    expect(v2.days["2026-09-21"]).toEqual({ tasks: [], blocks: [], carryOverDone: true });
+  });
+
+  it("reports a full quota instead of throwing", () => {
+    vi.stubGlobal("localStorage", {
+      getItem: () => null,
+      removeItem: () => {},
+      setItem: () => {
+        throw new DOMException("full", "QuotaExceededError");
+      },
+    });
+    expect(() => guardedStorage().setItem("timebox", "{}")).not.toThrow();
+    expect(useStorageStatus.getState().full).toBe(true);
+  });
+});
+

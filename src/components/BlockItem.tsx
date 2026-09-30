@@ -13,6 +13,8 @@ type Props = {
   dayStart: number;
   /** Measured from the timeline, so slot height stays a token. */
   pxPerMinute: () => number;
+  /** Past days: no drag, resize, keyboard edits or remove. */
+  readOnly?: boolean;
   onMove: (start: number) => Validation;
   onResize: (minutes: number) => Validation;
   onRemove: () => void;
@@ -29,12 +31,13 @@ export function BlockItem({
   kind,
   dayStart,
   pxPerMinute,
+  readOnly = false,
   onMove,
   onResize,
   onRemove,
   onRejected,
 }: Props) {
-  const draggable = block.source === "task";
+  const draggable = block.source === "task" && !readOnly;
   const drag = useRef<Drag | null>(null);
   const [preview, setPreview] = useState<{ start: number; minutes: number } | null>(null);
   const shown = preview ?? block;
@@ -71,6 +74,7 @@ export function BlockItem({
 
   // Keyboard: ↑/↓ moves 5 min, Shift+↑/↓ resizes, Delete removes.
   const onKeyDown = (e: KeyboardEvent) => {
+    if (readOnly) return;
     if (e.key === "Delete" || e.key === "Backspace") return onRemove();
     if (!draggable || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
     e.preventDefault();
@@ -108,6 +112,7 @@ export function BlockItem({
           {formatTime(shown.start)}–{formatTime(shown.start + shown.minutes)}
           {!compact && ` · ${formatDuration(shown.minutes)}`}
         </span>
+{!readOnly && (
         <button
           type="button"
           aria-label={`Remove ${label} from timeline`}
@@ -117,6 +122,7 @@ export function BlockItem({
         >
           <X className="h-3 w-3" />
         </button>
+        )}
       </div>
       {/* Short blocks would be all handle; they resize with Shift+↑/↓ instead. */}
       {draggable && shown.minutes > 2 * SLOT_MINUTES && (
