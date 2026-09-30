@@ -1,6 +1,6 @@
 # Idea vet: AI timeboxing with live re-plan
 
-**Date:** 2026-09-30 · **Verdict:** Park. No web app yet: use the in-chat planner daily for 10 days first (tests 1, 2, 5).
+**Date:** 2026-09-30 · **Verdict:** Park as a product. Update 2026-09-30: personal build approved (Pivot 1, open-source-ready); the app itself becomes the 10-workday test after its phase 3.
 
 ## TL;DR
 - No hard blocker. Google Calendar is a sensitive scope: 100-user lifetime cap until verified, verification ~10 business days ([Google](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification), [Unipile](https://www.unipile.com/google-oauth-100-user-limit/)). AI cost is cheap (~$1-2/user/month).
