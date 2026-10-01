@@ -53,7 +53,7 @@ export function App() {
           Storage is full, so recent changes aren't saved. Export a backup, then clear old data.
         </p>
       )}
-      <main className="mx-auto grid max-w-6xl gap-6 px-gutter py-8 md:grid-cols-[22rem_1fr]">
+      <main className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-gutter py-6 sm:gap-6 sm:py-8 md:grid-cols-[22rem_minmax(0,1fr)]">
         <div className="flex flex-col gap-1 md:col-span-2">
           <h1 className="text-3xl font-semibold tracking-tight">
             {isPast && viewDate ? formatDateKey(viewDate) : "Today"}

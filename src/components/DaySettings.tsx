@@ -17,6 +17,7 @@ export function DaySettings({ onRejected }: { onRejected: (reason: string) => vo
         type="button"
         variant="ghost"
         size="sm"
+        className="px-2 sm:px-3"
         aria-label="Change day start and end"
         onClick={() => {
           setStart(formatTime(settings.start));
